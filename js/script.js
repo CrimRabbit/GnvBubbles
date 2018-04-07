@@ -5,15 +5,15 @@
 
 
 /*** 1. INIT: THE NECESSARY COMPONENTS ***/
+var mouse = new THREE.Vector2();
+var lmbDown = false;
 console.log('hello');
 var camera, scene, renderer;
 var light;
 var geometry, material;
-var cube;
+let cube;
 var INTERSECTED;
 
-var raycaster = new THREE.Raycaster();
-var mouse = new THREE.Vector2();
 
 init();
 animate();
@@ -53,10 +53,27 @@ function init(){
 
   /*** 2. ADD AN ELEMENT: THE CUBE ***/
   // Create the element
-  geometry = new THREE.SphereGeometry(30, 10, 10);
-  material = new THREE.MeshLambertMaterial({color: 0xfd59d7, wireframe : false});
-  cube = new THREE.Mesh(geometry, material);
+
+  // Create the element
+  let geometry = new THREE.SphereGeometry(30, 32, 16);
+  // let material = new THREE.MeshLambertMaterial({color: 0xfd59d7, wireframe : false});
+
+  let material = new THREE.MeshBasicMaterial({color: 0xffffff, envMap: textureCube, transparent: true});
+  let material2 = new THREE.MeshBasicMaterial({color: 0xff0000, envMap: textureCube, transparent: true});
+
+  cube = new THREE.Mesh(geometry, [material, material2]);
   scene.add(cube);
+  console.log("Cube");
+  console.log(cube);
+  for(let i =0;i < cube.geometry.faces.length;i++ ){
+    cube.geometry.faces[i].materialIndex = i%2;
+  }
+
+  cube.geometry.vertices[0].y += 30;
+  cube.geometry.verticesNeedUpdate = true;
+
+  console.log(cube.geometry);
+  //console.log(cube.geometry.vertices[0]);
 }
 
 // console.log(cube);
@@ -65,7 +82,6 @@ function init(){
 // cube.geometry.verticesNeedUpdate = true;
 // console.log(cube.geometry);
 // console.log(cube.geometry.vertices[0]);
-
 
 
 
@@ -81,10 +97,10 @@ function animate(){
 
 
 	// update the picking ray with the camera and mouse position
-	raycaster.setFromCamera( mouse, camera );
+	// raycaster.setFromCamera( mouse, camera );
 
 	// calculate objects intersecting the picking ray
-	var intersects = raycaster.intersectObjects( scene.children );
+	// var intersects = raycaster.intersectObjects( scene.children );
 
 
   camera.updateProjectionMatrix();
@@ -128,3 +144,58 @@ lightGui.add(light.position, 'x');
 lightGui.add(light.position, 'y');
 lightGui.add(light.position, 'z');
 lightGui.open();
+
+
+function onMouseDown(event){
+        event.preventDefault();
+        //console.log(event)
+        // Check left button
+        if (event.button == 0) {
+          lmbDown = true;
+        }
+
+        //gCamera.updateMatrixWorld();
+        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+        var raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera( mouse, camera );
+
+        var intersects = raycaster.intersectObjects( scene.children );
+        if(intersects.length > 0){
+          console.log(intersects[0]);
+          //console.log(intersects[0].object.geometry);
+          let faceIndex = intersects[0].faceIndex;
+
+          if(faceIndex == 0 || faceIndex % 2 == 0){
+            //console.log(intersects[0].object.geometry.faces[faceIndex].color)
+            //intersects[0].object.material.color.setHex( 0x33bbcc);
+            //intersects[0].object.geometry.faces.splice(faceIndex,1);
+            if(intersects[0].object.material[faceIndex].opacity == 0){
+              intersects[0].object.material[faceIndex].opacity = 1;
+            }else{
+              intersects[0].object.material[faceIndex].opacity = 0;
+            }
+            //console.log(intersects[0].object.geometry.faces[faceIndex].color)
+          }else {
+            //intersects[0].object.material[faceIndex].opacity = 1;
+            console.log("miss")
+            // let deadFaces = [intersects[0].object.material[faceIndex].a,
+            //                  intersects[0].object.material[faceIndex].b,
+            //                  intersects[0].object.material[faceIndex].c];
+            // for(let i = 0;i < )
+            //intersects[0].object.material.color.setHex( 0xD1B3B3);
+        }
+    }
+}
+
+function onMouseUp( event ) {
+  event.preventDefault();
+
+  if (event.button == 0) {
+    lmbDown = false;
+  }
+}
+
+document.addEventListener('mousedown', onMouseDown, false);
+document.addEventListener('mouseup', onMouseUp, false);

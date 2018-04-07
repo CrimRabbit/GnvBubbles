@@ -71,7 +71,21 @@ function init(){
   let material3 = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true});
   material3.opacity = 0;
 
-  cube = new THREE.Mesh(geometry, [material, material2, material3]);
+  let uniforms = {
+    envMap: textureCube,
+  }
+
+  let shader = BubbleShader
+  let bubbleMaterial = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: shader.vertexShader,
+    fragmentShader: shader.fragmentShader,
+    side: THREE.DoubleSide,
+    transparent: true,
+  })
+
+  cube = new THREE.Mesh(geometry, [material3, bubbleMaterial])
+  // cube = new THREE.Mesh(geometry, [material, material2, material3]);
   scene.add(cube);
   console.log("Cube");
   //console.log(cube);
@@ -146,28 +160,6 @@ function onMouseMove( event ) {
 
 
 window.addEventListener( 'mousemove', onMouseMove, false );
-
-// DAT.GUI CONTROLS
-let gui = new dat.GUI();
-
-// FOW
-let fovGui = gui.addFolder("Field Of view");
-fovGui.add(camera, 'fov')
-fovGui.open();
-
-// Camera
-let cameraGui = gui.addFolder("Camera position");
-cameraGui.add(camera.position, 'x');
-cameraGui.add(camera.position, 'y');
-cameraGui.add(camera.position, 'z');
-cameraGui.open();
-
-// Light
-let lightGui = gui.addFolder("Light position");
-lightGui.add(light.position, 'x');
-lightGui.add(light.position, 'y');
-lightGui.add(light.position, 'z');
-lightGui.open();
 
 
 function onMouseDown(event){

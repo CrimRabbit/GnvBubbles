@@ -41,15 +41,19 @@ scene.background = textureCube;
 /*** 2. ADD AN ELEMENT: THE CUBE ***/
 
 // Create the element
-let geometry = new THREE.SphereGeometry(30, 10, 10);
-let material = new THREE.MeshLambertMaterial({color: 0xfd59d7, wireframe : false});
-let cube = new THREE.Mesh(geometry, material);
+let geometry = new THREE.SphereGeometry(30, 32, 16);
+// let material = new THREE.MeshLambertMaterial({color: 0xfd59d7, wireframe : false});
+
+let material = new THREE.MeshBasicMaterial({color: 0xffffff, envMap: textureCube, opacity: 0.6, transparent: true});
+let material2 = new THREE.MeshBasicMaterial({color: 0xff0000, envMap: textureCube, opacity: 0.6, transparent: true});
+
+let cube = new THREE.Mesh(geometry, [material, material2]);
 scene.add(cube);
 
-console.log(cube.geometry);
+console.log(cube);
 console.log(cube.geometry.vertices[0]);
-cube.geometry.vertices[0].y += 30;
-cube.geometry.verticesNeedUpdate = true;
+// cube.geometry.vertices[0].y += 30;
+// cube.geometry.verticesNeedUpdate = true;
 console.log(cube.geometry);
 console.log(cube.geometry.vertices[0]);
 

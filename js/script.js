@@ -91,7 +91,7 @@ function init(){
 
   console.log(cube);
   console.log("============")
-  console.log(verticeToFaces)
+  //console.log(verticeToFaces)
 }
 
 function initFaces(cube){
@@ -126,7 +126,7 @@ function animate(){
 
 	// calculate objects intersecting the picking ray
 	// var intersects = raycaster.intersectObjects( scene.children );
-  controls.update();
+  //controls.update();
   camera.updateProjectionMatrix();
 
   // render the code above at every frame

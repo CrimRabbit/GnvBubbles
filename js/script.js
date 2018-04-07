@@ -60,28 +60,28 @@ function init(){
 
   let material = new THREE.MeshBasicMaterial({color: 0xffffff, envMap: textureCube, transparent: true});
   let material2 = new THREE.MeshBasicMaterial({color: 0xff0000, envMap: textureCube, transparent: true});
+let material3 = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true});
+material3.opacity = 0;
 
-  cube = new THREE.Mesh(geometry, [material, material2]);
+  cube = new THREE.Mesh(geometry, [material, material2, material3]);
   scene.add(cube);
   console.log("Cube");
   console.log(cube);
-  for(let i =0;i < cube.geometry.faces.length;i++ ){
-    cube.geometry.faces[i].materialIndex = i%2;
-  }
 
-  cube.geometry.vertices[0].y += 30;
-  cube.geometry.verticesNeedUpdate = true;
+
+initFaces(cube)
+
+cube.geometry.vertices[0].y += 30;
+cube.geometry.verticesNeedUpdate = true;
 
   console.log(cube.geometry);
-  //console.log(cube.geometry.vertices[0]);
 }
 
-// console.log(cube);
-// console.log(cube.geometry.vertices[0]);
-// cube.geometry.vertices[0].y += 30;
-// cube.geometry.verticesNeedUpdate = true;
-// console.log(cube.geometry);
-// console.log(cube.geometry.vertices[0]);
+function initFaces(cube){
+  for(let faceIndex =0;faceIndex < cube.geometry.faces.length;faceIndex++ ){
+    cube.geometry.faces[faceIndex].materialIndex = faceIndex%2;
+  }
+}
 
 
 
@@ -101,7 +101,6 @@ function animate(){
 
 	// calculate objects intersecting the picking ray
 	// var intersects = raycaster.intersectObjects( scene.children );
-
 
   camera.updateProjectionMatrix();
 
@@ -171,15 +170,12 @@ function onMouseDown(event){
             //console.log(intersects[0].object.geometry.faces[faceIndex].color)
             //intersects[0].object.material.color.setHex( 0x33bbcc);
             //intersects[0].object.geometry.faces.splice(faceIndex,1);
-            if(intersects[0].object.material[faceIndex].opacity == 0){
-              intersects[0].object.material[faceIndex].opacity = 1;
-            }else{
-              intersects[0].object.material[faceIndex].opacity = 0;
-            }
-            //console.log(intersects[0].object.geometry.faces[faceIndex].color)
+            intersects[0].object.geometry.faces[faceIndex].materialIndex = 3;
+            intersects[0].object.geometry.groupsNeedUpdate = true;
           }else {
             //intersects[0].object.material[faceIndex].opacity = 1;
             console.log("miss")
+            console.log(intersects[0].object.geometry.faces[faceIndex].a)
             // let deadFaces = [intersects[0].object.material[faceIndex].a,
             //                  intersects[0].object.material[faceIndex].b,
             //                  intersects[0].object.material[faceIndex].c];

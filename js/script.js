@@ -59,20 +59,20 @@ function init(){
   // let material = new THREE.MeshLambertMaterial({color: 0xfd59d7, wireframe : false});
 
   let material = new THREE.MeshBasicMaterial({color: 0xffffff, envMap: textureCube, transparent: true});
-  let material2 = new THREE.MeshBasicMaterial({color: 0xff0000, envMap: textureCube, transparent: true});
+  let material2 = new THREE.MeshBasicMaterial({color: 0xff0000, envMap: textureCube, transparent: false});
 
   cube = new THREE.Mesh(geometry, [material, material2]);
   scene.add(cube);
   console.log("Cube");
   console.log(cube);
   for(let i =0;i < cube.geometry.faces.length;i++ ){
-    cube.geometry.faces[i].materialIndex = i%2;
+    cube.geometry.faces[i].materialIndex = 1;
   }
 
-  cube.geometry.vertices[0].y += 30;
+  // cube.geometry.vertices[0].y += 30;
   cube.geometry.verticesNeedUpdate = true;
 
-  console.log(cube.geometry);
+  // console.log(cube.geometry);
   //console.log(cube.geometry.vertices[0]);
 }
 
@@ -92,8 +92,8 @@ function animate(){
   requestAnimationFrame(animate);
 
   // animation
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
+  // cube.rotation.x += 0.01;
+  // cube.rotation.y += 0.01;
 
 
 	// update the picking ray with the camera and mouse position
@@ -147,46 +147,51 @@ lightGui.open();
 
 
 function onMouseDown(event){
-        event.preventDefault();
-        //console.log(event)
-        // Check left button
-        if (event.button == 0) {
-          lmbDown = true;
+  event.preventDefault();
+  //console.log(event)
+  // Check left button
+  if (event.button == 0) {
+    lmbDown = true;
+  }
+
+  //gCamera.updateMatrixWorld();
+  mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+  mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+  var raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera( mouse, camera );
+
+  var intersects = raycaster.intersectObjects( scene.children );
+  if(intersects.length > 0){
+    // console.log(intersects[0]);
+    //console.log(intersects[0].object.geometry);
+    let faceIndex = intersects[0].faceIndex;
+    intersects[0].object.geometry.groupsNeedUpdate = true;
+      //console.log(intersects[0].object.geometry.faces[faceIndex].color)
+      //intersects[0].object.material.color.setHex( 0x33bbcc);
+      //intersects[0].object.geometry.faces.splice(faceIndex,1);
+    if(intersects[0].object.geometry.faces[faceIndex].materialIndex == 1){
+      intersects[0].object.geometry.faces[faceIndex].materialIndex = 0;
+      let x = intersects[0].face.a;
+      let y = intersects[0].face.b;
+      let z = intersects[0].face.c;
+      for (let i = 0; i < intersects[0].object.geometry.faces.length; i++) {
+        let currFace = intersects[0].object.geometry.faces[i];
+        if (currFace.a == x || currFace.a == y || currFace.a == z || currFace.b == x || currFace.b == y || currFace.b == z || currFace.c == x || currFace.c == y || currFace.c == z){
+          console.log(currFace);
+          intersects[0].object.geometry.faces[i].materialIndex = 0;
         }
-
-        //gCamera.updateMatrixWorld();
-        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-
-        var raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera( mouse, camera );
-
-        var intersects = raycaster.intersectObjects( scene.children );
-        if(intersects.length > 0){
-          console.log(intersects[0]);
-          //console.log(intersects[0].object.geometry);
-          let faceIndex = intersects[0].faceIndex;
-
-          if(faceIndex == 0 || faceIndex % 2 == 0){
-            //console.log(intersects[0].object.geometry.faces[faceIndex].color)
-            //intersects[0].object.material.color.setHex( 0x33bbcc);
-            //intersects[0].object.geometry.faces.splice(faceIndex,1);
-            if(intersects[0].object.material[faceIndex].opacity == 0){
-              intersects[0].object.material[faceIndex].opacity = 1;
-            }else{
-              intersects[0].object.material[faceIndex].opacity = 0;
-            }
-            //console.log(intersects[0].object.geometry.faces[faceIndex].color)
-          }else {
-            //intersects[0].object.material[faceIndex].opacity = 1;
-            console.log("miss")
-            // let deadFaces = [intersects[0].object.material[faceIndex].a,
-            //                  intersects[0].object.material[faceIndex].b,
-            //                  intersects[0].object.material[faceIndex].c];
-            // for(let i = 0;i < )
-            //intersects[0].object.material.color.setHex( 0xD1B3B3);
-        }
+      }
+    } else {
+    //intersects[0].object.material[faceIndex].opacity = 1;
+    console.log("miss");
+    // let deadFaces = [intersects[0].object.material[faceIndex].a,
+    //                  intersects[0].object.material[faceIndex].b,
+    //                  intersects[0].object.material[faceIndex].c];
+    // for(let i = 0;i < )
+    //intersects[0].object.material.color.setHex( 0xD1B3B3);
     }
+  }
 }
 
 function onMouseUp( event ) {

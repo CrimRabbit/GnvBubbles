@@ -7,13 +7,14 @@
 /*** 1. INIT: THE NECESSARY COMPONENTS ***/
 var mouse = new THREE.Vector2();
 var lmbDown = false;
+var controls;
 console.log('hello');
 var camera, scene, renderer;
 var light;
 var geometry, material;
 let cube;
 var INTERSECTED;
-
+var verticeToFaces;
 
 init();
 animate();
@@ -40,6 +41,8 @@ function init(){
   // Insert canvas element
   document.body.appendChild(renderer.domElement);
 
+  // Controls
+  controls = new THREE.OrbitControls(camera);
 
   var path = "textures/park/";
   var format = '.jpg';
@@ -50,6 +53,8 @@ function init(){
     ];
 
   var textureCube = new THREE.CubeTextureLoader().load( urls );
+  //list of vertice to faces, where index is the verticeIndex
+
   textureCube.format = THREE.RGBFormat;
 
   scene.background = textureCube;
@@ -61,15 +66,15 @@ function init(){
   let geometry = new THREE.SphereGeometry(30, 32, 16);
   // let material = new THREE.MeshLambertMaterial({color: 0xfd59d7, wireframe : false});
 
-  let material = new THREE.MeshBasicMaterial({color: 0xffffff, envMap: textureCube, transparent: true});
-  let material2 = new THREE.MeshBasicMaterial({color: 0xff0000, envMap: textureCube, transparent: true});
+  let material = new THREE.MeshBasicMaterial({color: 0x33bbcc, transparent: true});
+  let material2 = new THREE.MeshBasicMaterial({color: 0xff0000, transparent: true});
   let material3 = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true});
   material3.opacity = 0;
 
   cube = new THREE.Mesh(geometry, [material, material2, material3]);
   scene.add(cube);
   console.log("Cube");
-  console.log(cube);
+  //console.log(cube);
   for(let i =0;i < cube.geometry.faces.length;i++ ){
     cube.geometry.faces[i].materialIndex = 1;
   }
@@ -84,13 +89,22 @@ function init(){
   initFaces(cube)
 
 
-  console.log(cube.geometry);
-
+  console.log(cube);
+  console.log("============")
+  console.log(verticeToFaces)
 }
 
 function initFaces(cube){
+  verticeToFaces = Array.from({length:cube.geometry.vertices.length}).map((x,i) => [])
   for(let faceIndex =0;faceIndex < cube.geometry.faces.length;faceIndex++ ){
     cube.geometry.faces[faceIndex].materialIndex = faceIndex%2;
+    
+    let varA = cube.geometry.faces[faceIndex].a
+    let varB = cube.geometry.faces[faceIndex].b
+    let varC = cube.geometry.faces[faceIndex].c
+    verticeToFaces[varA].push(faceIndex);
+    verticeToFaces[varB].push(faceIndex);
+    verticeToFaces[varC].push(faceIndex);
   }
 }
 
@@ -112,7 +126,7 @@ function animate(){
 
 	// calculate objects intersecting the picking ray
 	// var intersects = raycaster.intersectObjects( scene.children );
-
+  controls.update();
   camera.updateProjectionMatrix();
 
   // render the code above at every frame
@@ -188,7 +202,7 @@ function onMouseDown(event){
       for (let i = 0; i < intersects[0].object.geometry.faces.length; i++) {
         let currFace = intersects[0].object.geometry.faces[i];
         if (currFace.a == x || currFace.a == y || currFace.a == z || currFace.b == x || currFace.b == y || currFace.b == z || currFace.c == x || currFace.c == y || currFace.c == z){
-          console.log(currFace);
+          //console.log(currFace);
           intersects[0].object.geometry.faces[i].materialIndex = 0;
         }
       }

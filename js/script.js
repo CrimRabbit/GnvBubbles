@@ -59,9 +59,11 @@ function init(){
   // let material = new THREE.MeshLambertMaterial({color: 0xfd59d7, wireframe : false});
 
   let material = new THREE.MeshBasicMaterial({color: 0xffffff, envMap: textureCube, transparent: true});
-  let material2 = new THREE.MeshBasicMaterial({color: 0xff0000, envMap: textureCube, transparent: false});
+  let material2 = new THREE.MeshBasicMaterial({color: 0xff0000, envMap: textureCube, transparent: true});
+  let material3 = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true});
+  material3.opacity = 0;
 
-  cube = new THREE.Mesh(geometry, [material, material2]);
+  cube = new THREE.Mesh(geometry, [material, material2, material3]);
   scene.add(cube);
   console.log("Cube");
   console.log(cube);
@@ -74,14 +76,20 @@ function init(){
 
   // console.log(cube.geometry);
   //console.log(cube.geometry.vertices[0]);
+
+
+  initFaces(cube)
+
+
+  console.log(cube.geometry);
+
 }
 
-// console.log(cube);
-// console.log(cube.geometry.vertices[0]);
-// cube.geometry.vertices[0].y += 30;
-// cube.geometry.verticesNeedUpdate = true;
-// console.log(cube.geometry);
-// console.log(cube.geometry.vertices[0]);
+function initFaces(cube){
+  for(let faceIndex =0;faceIndex < cube.geometry.faces.length;faceIndex++ ){
+    cube.geometry.faces[faceIndex].materialIndex = faceIndex%2;
+  }
+}
 
 
 
@@ -101,7 +109,6 @@ function animate(){
 
 	// calculate objects intersecting the picking ray
 	// var intersects = raycaster.intersectObjects( scene.children );
-
 
   camera.updateProjectionMatrix();
 

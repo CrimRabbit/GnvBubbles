@@ -63,13 +63,13 @@ function init(){
   // Create the element
 
   // Create the element
-  let geometry = new THREE.SphereGeometry(30, 32, 16);
+  let geometry = new THREE.SphereGeometry(30, 200, 100);
   // let material = new THREE.MeshLambertMaterial({color: 0xfd59d7, wireframe : false});
 
-  let material = new THREE.MeshBasicMaterial({color: 0x33bbcc, transparent: true});
-  let material2 = new THREE.MeshBasicMaterial({color: 0xff0000, transparent: true});
-  let material3 = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true});
-  material3.opacity = 0;
+  // let material = new THREE.MeshBasicMaterial({color: 0x33bbcc, transparent: true});
+  // let material2 = new THREE.MeshBasicMaterial({color: 0xff0000, transparent: true});
+  let transparentMaterial = new THREE.MeshBasicMaterial({transparent: true});
+  transparentMaterial.opacity = 0;
 
   let uniforms = {
     envMap: textureCube,
@@ -84,17 +84,15 @@ function init(){
     transparent: true,
   })
 
-  cube = new THREE.Mesh(geometry, [material3, bubbleMaterial])
-  // cube = new THREE.Mesh(geometry, [material, material2, material3]);
+  cube = new THREE.Mesh(geometry, [bubbleMaterial, transparentMaterial])
+
   scene.add(cube);
   console.log("Cube");
   //console.log(cube);
-  for(let i =0;i < cube.geometry.faces.length;i++ ){
-    cube.geometry.faces[i].materialIndex = 1;
-  }
 
   // cube.geometry.vertices[0].y += 30;
   cube.geometry.verticesNeedUpdate = true;
+  cube.geometry.GroupsNeedUpdate = true;
 
   // console.log(cube.geometry);
   //console.log(cube.geometry.vertices[0]);
@@ -105,13 +103,12 @@ function init(){
 
   console.log(cube);
   console.log("============")
-  //console.log(verticeToFaces)
+  console.log(verticeToFaces)
 }
 
 function initFaces(cube){
   verticeToFaces = Array.from({length:cube.geometry.vertices.length}).map((x,i) => [])
-  for(let faceIndex =0;faceIndex < cube.geometry.faces.length;faceIndex++ ){
-    cube.geometry.faces[faceIndex].materialIndex = faceIndex%2;
+  for (let faceIndex=0; faceIndex < cube.geometry.faces.length; faceIndex++ ){
     
     let varA = cube.geometry.faces[faceIndex].a
     let varB = cube.geometry.faces[faceIndex].b
@@ -161,6 +158,39 @@ function onMouseMove( event ) {
 
 window.addEventListener( 'mousemove', onMouseMove, false );
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function propagatePop(object, faceIndices, remainingCount) {
+  console.log(remainingCount + ' vertices are visible')
+
+  if (remainingCount > 0) {
+    setTimeout(() => propagatePop(object, nextFaces, remainingCount), 100)
+  }
+
+  let nextFaces = []
+
+  for (let faceIdx of faceIndices) {
+
+    let face = object.geometry.faces[faceIdx]
+    face.materialIndex = 1
+
+    let connectedVertices = [face.a, face.b, face.c].filter((v) => object.geometry.vertices[v].visible)
+
+    for (let v of connectedVertices) {
+      object.geometry.vertices[v].visible = false
+      remainingCount -= 1
+    }
+    
+    for (let vIdx of connectedVertices) {
+      nextFaces = nextFaces.concat(verticeToFaces[vIdx].filter((f) => 
+        object.geometry.faces[f].materialIndex === 0 && nextFaces.indexOf(f) == -1))
+    }
+
+  }
+  object.geometry.groupsNeedUpdate = true
+}
 
 function onMouseDown(event){
   event.preventDefault();
@@ -179,26 +209,17 @@ function onMouseDown(event){
 
   var intersects = raycaster.intersectObjects( scene.children );
   if(intersects.length > 0){
-    // console.log(intersects[0]);
-    //console.log(intersects[0].object.geometry);
-    let faceIndex = intersects[0].faceIndex;
-    intersects[0].object.geometry.groupsNeedUpdate = true;
-      //console.log(intersects[0].object.geometry.faces[faceIndex].color)
-      //intersects[0].object.material.color.setHex( 0x33bbcc);
-      //intersects[0].object.geometry.faces.splice(faceIndex,1);
-    if(intersects[0].object.geometry.faces[faceIndex].materialIndex == 1){
-      intersects[0].object.geometry.faces[faceIndex].materialIndex = 0;
-      let x = intersects[0].face.a;
-      let y = intersects[0].face.b;
-      let z = intersects[0].face.c;
-      for (let i = 0; i < intersects[0].object.geometry.faces.length; i++) {
-        let currFace = intersects[0].object.geometry.faces[i];
-        if (currFace.a == x || currFace.a == y || currFace.a == z || currFace.b == x || currFace.b == y || currFace.b == z || currFace.c == x || currFace.c == y || currFace.c == z){
-          //console.log(currFace);
-          intersects[0].object.geometry.faces[i].materialIndex = 0;
-        }
-      }
-    } else {
+
+    let nextFaces = [intersects[0].faceIndex]
+    vertexCount = cube.geometry.vertices.length
+    console.log('there are '+vertexCount+' vertices')
+    for (let i=0; i<vertexCount; i++) {
+      cube.geometry.vertices[i].visible = true
+    }
+
+    nextFaces = propagatePop(cube, nextFaces, vertexCount)
+
+  } else {
     //intersects[0].object.material[faceIndex].opacity = 1;
     console.log("miss");
     // let deadFaces = [intersects[0].object.material[faceIndex].a,
@@ -206,7 +227,6 @@ function onMouseDown(event){
     //                  intersects[0].object.material[faceIndex].c];
     // for(let i = 0;i < )
     //intersects[0].object.material.color.setHex( 0xD1B3B3);
-    }
   }
 }
 

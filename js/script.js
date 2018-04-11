@@ -3,7 +3,6 @@
   https://threejs.org/docs/index.html#manual/introduction/Creating-a-scene
  ***************************************/
 
-
 /*** 1. INIT: THE NECESSARY COMPONENTS ***/
 var mouse = new THREE.Vector2();
 var lmbDown = false;
@@ -73,18 +72,18 @@ function init(){
 
   let uniforms = {
     envMap: textureCube,
-  }
+  };
 
-  let shader = BubbleShader
+  let shader = BubbleShader;
   let bubbleMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: shader.vertexShader,
     fragmentShader: shader.fragmentShader,
     side: THREE.DoubleSide,
     transparent: true,
-  })
+  });
 
-  cube = new THREE.Mesh(geometry, [bubbleMaterial, transparentMaterial])
+  cube = new THREE.Mesh(geometry, [bubbleMaterial, transparentMaterial]);
 
   scene.add(cube);
   console.log("Cube");
@@ -98,21 +97,21 @@ function init(){
   //console.log(cube.geometry.vertices[0]);
 
 
-  initFaces(cube)
+  initFaces(cube);
 
 
   console.log(cube);
-  console.log("============")
-  console.log(verticeToFaces)
+  console.log("============");
+  console.log(verticeToFaces);
 }
 
 function initFaces(cube){
-  verticeToFaces = Array.from({length:cube.geometry.vertices.length}).map((x,i) => [])
+  verticeToFaces = Array.from({length:cube.geometry.vertices.length}).map((x,i) => []);
   for (let faceIndex=0; faceIndex < cube.geometry.faces.length; faceIndex++ ){
-    
-    let varA = cube.geometry.faces[faceIndex].a
-    let varB = cube.geometry.faces[faceIndex].b
-    let varC = cube.geometry.faces[faceIndex].c
+
+    let varA = cube.geometry.faces[faceIndex].a;
+    let varB = cube.geometry.faces[faceIndex].b;
+    let varC = cube.geometry.faces[faceIndex].c;
     verticeToFaces[varA].push(faceIndex);
     verticeToFaces[varB].push(faceIndex);
     verticeToFaces[varC].push(faceIndex);
@@ -176,15 +175,15 @@ function propagatePop(object, faceIndices, remainingCount) {
     let face = object.geometry.faces[faceIdx]
     face.materialIndex = 1
 
-    let connectedVertices = [face.a, face.b, face.c].filter((v) => object.geometry.vertices[v].visible)
+    let connectedVertices = [face.a, face.b, face.c].filter((v) => object.geometry.vertices[v].visible);
 
     for (let v of connectedVertices) {
-      object.geometry.vertices[v].visible = false
-      remainingCount -= 1
+      object.geometry.vertices[v].visible = false;
+      remainingCount -= 1;
     }
-    
+
     for (let vIdx of connectedVertices) {
-      nextFaces = nextFaces.concat(verticeToFaces[vIdx].filter((f) => 
+      nextFaces = nextFaces.concat(verticeToFaces[vIdx].filter((f) =>
         object.geometry.faces[f].materialIndex === 0 && nextFaces.indexOf(f) == -1))
     }
 
@@ -196,7 +195,7 @@ function onMouseDown(event){
   event.preventDefault();
   //console.log(event)
   // Check left button
-  if (event.button == 0) {
+  if (event.button === 0) {
     lmbDown = true;
   }
 
@@ -233,7 +232,7 @@ function onMouseDown(event){
 function onMouseUp( event ) {
   event.preventDefault();
 
-  if (event.button == 0) {
+  if (event.button === 0) {
     lmbDown = false;
   }
 }

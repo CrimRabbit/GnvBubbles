@@ -4,21 +4,27 @@
  ***************************************/
 
 /*** 1. INIT: THE NECESSARY COMPONENTS ***/
-var mouse = new THREE.Vector2();
-var lmbDown = false;
-var controls;
+let mouse = new THREE.Vector2();
+let lmbDown = false;
+let controls;
 console.log('hello');
-var camera, scene, renderer;
-var light;
-var geometry, material;
-let cube;
-var INTERSECTED;
-var verticeToFaces;
+let camera,
+  scene,
+  renderer;
+let light;
+let geometry,
+  material;
+let bubble;
+let INTERSECTED;
+let verticeToFaces;
+
+let mesh2;
+let meshGeometry;
 
 init();
 animate();
 
-function init(){
+function init() {
   // Scene
   scene = new THREE.Scene();
 
@@ -27,7 +33,7 @@ function init(){
   camera.position.set(0, 0, 100);
 
   // Orbit controls
-  var controls = new THREE.OrbitControls( camera );
+  var controls = new THREE.OrbitControls(camera);
 
   // Light
   light = new THREE.PointLight(0xFFFF00);
@@ -36,33 +42,37 @@ function init(){
 
   // Renderer
   renderer = new THREE.WebGLRenderer();
-  renderer.setSize(  window.innerWidth, window.innerHeight );
+  renderer.setSize(window.innerWidth, window.innerHeight);
   // Insert canvas element
   document.body.appendChild(renderer.domElement);
 
   // Controls
   controls = new THREE.OrbitControls(camera);
 
-  var path = "textures/park/";
-  var format = '.jpg';
-  var urls = [
-      path + 'posx' + format, path + 'negx' + format,
-      path + 'posy' + format, path + 'negy' + format,
-      path + 'posz' + format, path + 'negz' + format
-    ];
+  let path = "textures/park/";
+  let format = '.jpg';
+  let urls = [
+    path + 'posx' + format,
+    path + 'negx' + format,
+    path + 'posy' + format,
+    path + 'negy' + format,
+    path + 'posz' + format,
+    path + 'negz' + format
+  ];
 
-  var textureCube = new THREE.CubeTextureLoader().load( urls );
+  let textureCube = new THREE.CubeTextureLoader().load(urls);
   //list of vertice to faces, where index is the verticeIndex
 
   textureCube.format = THREE.RGBFormat;
 
   scene.background = textureCube;
 
-  /*** 2. ADD AN ELEMENT: THE CUBE ***/
+  /*** 2. ADD AN ELEMENT: THE bubble ***/
   // Create the element
 
   // Create the element
   let geometry = new THREE.SphereGeometry(30, 200, 100);
+  let innerGeometry = new THREE.SphereGeometry(29, 200, 100);
   // let material = new THREE.MeshLambertMaterial({color: 0xfd59d7, wireframe : false});
 
   // let material = new THREE.MeshBasicMaterial({color: 0x33bbcc, transparent: true});
@@ -71,71 +81,110 @@ function init(){
   transparentMaterial.opacity = 0;
 
   let uniforms = {
-    envMap: textureCube,
+    envMap: textureCube
   };
 
   let shader = BubbleShader;
-  let bubbleMaterial = new THREE.ShaderMaterial({
-    uniforms: uniforms,
-    vertexShader: shader.vertexShader,
-    fragmentShader: shader.fragmentShader,
-    side: THREE.DoubleSide,
-    transparent: true,
-  });
+  let bubbleMaterial = new THREE.ShaderMaterial({uniforms: uniforms, vertexShader: shader.vertexShader, fragmentShader: shader.fragmentShader, side: THREE.DoubleSide, transparent: true});
 
-  cube = new THREE.Mesh(geometry, [bubbleMaterial, transparentMaterial]);
+  bubble = new THREE.Mesh(geometry, [bubbleMaterial, transparentMaterial]);
+  bubble.geometry.computeFaceNormals();
 
-  scene.add(cube);
-  console.log("Cube");
-  //console.log(cube);
+  let particleMaterial = new THREE.PointsMaterial({size: 0.1, color: "red"});
+  mesh = new THREE.Points(geometry, material);
 
-  // cube.geometry.vertices[0].y += 30;
-  cube.geometry.verticesNeedUpdate = true;
-  cube.geometry.GroupsNeedUpdate = true;
+  let meshGeometry = new THREE.Geometry();
 
-  // console.log(cube.geometry);
-  //console.log(cube.geometry.vertices[0]);
+  let sphereVerts = innerGeometry.vertices;
+  let sphereFaces = innerGeometry.faces;
 
+  let checkVert = [];
+  sphereFaces.forEach((f) => {
+    let vertA = sphereVerts[f.a];
+    let vertB = sphereVerts[f.b];
+    let vertC = sphereVerts[f.c];
 
-  initFaces(cube);
+    let normal = f.normal.multiplyScalar(Math.random() * 0.3);
 
+    vertA.v = normal;
+    vertB.v = normal;
+    vertC.v = normal;
 
-  console.log(cube);
+    vertA.move = false;
+    vertB.move = false;
+    vertC.move = false;
+
+    helperAddVertIfNotExist(checkVert, meshGeometry, vertA, f.a);
+    helperAddVertIfNotExist(checkVert, meshGeometry, vertB, f.b);
+    helperAddVertIfNotExist(checkVert, meshGeometry, vertC, f.c);
+
+  })
+
+  mesh2 = new THREE.Points(meshGeometry, particleMaterial);
+  mesh2.sortParticles = true;
+
+  scene.add(mesh2);
+  scene.add(bubble);
+  console.log("bubble");
+  console.log(bubble);
+
+  initFaces(bubble);
+
   console.log("============");
   console.log(verticeToFaces);
 }
 
-function initFaces(cube){
-  verticeToFaces = Array.from({length:cube.geometry.vertices.length}).map((x,i) => []);
-  for (let faceIndex=0; faceIndex < cube.geometry.faces.length; faceIndex++ ){
+function initFaces(bubble) {
+  verticeToFaces = Array.from({length: bubble.geometry.vertices.length}).map((x, i) => []);
+  for (let faceIndex = 0; faceIndex < bubble.geometry.faces.length; faceIndex++) {
 
-    let varA = cube.geometry.faces[faceIndex].a;
-    let varB = cube.geometry.faces[faceIndex].b;
-    let varC = cube.geometry.faces[faceIndex].c;
+    let varA = bubble.geometry.faces[faceIndex].a;
+    let varB = bubble.geometry.faces[faceIndex].b;
+    let varC = bubble.geometry.faces[faceIndex].c;
     verticeToFaces[varA].push(faceIndex);
     verticeToFaces[varB].push(faceIndex);
     verticeToFaces[varC].push(faceIndex);
   }
 }
 
+function helperAddVertIfNotExist(arr, geometry, vertex, vertexIndex) {
+  if (!arr.includes(vertexIndex)) {
+    geometry.vertices.push(vertex);
+    arr.push(vertexIndex);
+  }
 
+}
 
 /*** 3. RENDERING THE SCENE: RENDERER LOOP ***/
-function animate(){
+function animate() {
+  mesh2.geometry.verticesNeedUpdate = true;
 
+  bubble.geometry.verticesNeedUpdate = true;
+  // let verts = bubble.geometry.vertices;
+  // let faces = bubble.geometry.faces;
+  let verts = mesh2.geometry.vertices;
+  verts.forEach((v) => {
+    // console.log(v);
+    if (v.move) {
+      v.addScaledVector(v.v, 1);
+    }
+  })
+
+  // verts.forEach((v)=>{
+  //   v.y -= v.vy;
+  // })
   // played 60 fps (60 rendering per second)
   requestAnimationFrame(animate);
 
   // animation
-  // cube.rotation.x += 0.01;
-  // cube.rotation.y += 0.01;
+  // bubble.rotation.x += 0.01;
+  // bubble.rotation.y += 0.01;
 
+  // update the picking ray with the camera and mouse position
+  // raycaster.setFromCamera( mouse, camera );
 
-	// update the picking ray with the camera and mouse position
-	// raycaster.setFromCamera( mouse, camera );
-
-	// calculate objects intersecting the picking ray
-	// var intersects = raycaster.intersectObjects( scene.children );
+  // calculate objects intersecting the picking ray
+  // var intersects = raycaster.intersectObjects( scene.children );
   //controls.update();
   camera.updateProjectionMatrix();
 
@@ -143,19 +192,17 @@ function animate(){
   renderer.render(scene, camera);
 }
 
+function onMouseMove(event) {
 
-function onMouseMove( event ) {
+  // calculate mouse position in normalized device coordinates
+  // (-1 to +1) for both components
 
-	// calculate mouse position in normalized device coordinates
-	// (-1 to +1) for both components
-
-	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
 }
 
-
-window.addEventListener( 'mousemove', onMouseMove, false );
+window.addEventListener('mousemove', onMouseMove, false);
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -165,7 +212,7 @@ function propagatePop(object, faceIndices, remainingCount) {
   console.log(remainingCount + ' vertices are visible')
 
   if (remainingCount > 0) {
-    setTimeout(() => propagatePop(object, nextFaces, remainingCount), 100)
+    setTimeout(() => propagatePop(object, nextFaces, remainingCount), 10)
   }
 
   let nextFaces = []
@@ -177,21 +224,22 @@ function propagatePop(object, faceIndices, remainingCount) {
 
     let connectedVertices = [face.a, face.b, face.c].filter((v) => object.geometry.vertices[v].visible);
 
+    let meshVerts = mesh2.geometry.vertices;
     for (let v of connectedVertices) {
       object.geometry.vertices[v].visible = false;
+      meshVerts[v].move = true;
       remainingCount -= 1;
     }
 
     for (let vIdx of connectedVertices) {
-      nextFaces = nextFaces.concat(verticeToFaces[vIdx].filter((f) =>
-        object.geometry.faces[f].materialIndex === 0 && nextFaces.indexOf(f) == -1))
+      nextFaces = nextFaces.concat(verticeToFaces[vIdx].filter((f) => object.geometry.faces[f].materialIndex === 0 && nextFaces.indexOf(f) == -1))
     }
 
   }
   object.geometry.groupsNeedUpdate = true
 }
 
-function onMouseDown(event){
+function onMouseDown(event) {
   event.preventDefault();
   //console.log(event)
   // Check left button
@@ -200,23 +248,23 @@ function onMouseDown(event){
   }
 
   //gCamera.updateMatrixWorld();
-  mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-  mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-  var raycaster = new THREE.Raycaster();
-  raycaster.setFromCamera( mouse, camera );
+  let raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mouse, camera);
 
-  var intersects = raycaster.intersectObjects( scene.children );
-  if(intersects.length > 0){
+  let intersects = raycaster.intersectObjects(scene.children);
+  if (intersects.length > 0) {
 
     let nextFaces = [intersects[0].faceIndex]
-    vertexCount = cube.geometry.vertices.length
-    console.log('there are '+vertexCount+' vertices')
-    for (let i=0; i<vertexCount; i++) {
-      cube.geometry.vertices[i].visible = true
+    vertexCount = bubble.geometry.vertices.length
+    console.log('there are ' + vertexCount + ' vertices')
+    for (let i = 0; i < vertexCount; i++) {
+      bubble.geometry.vertices[i].visible = true
     }
 
-    nextFaces = propagatePop(cube, nextFaces, vertexCount)
+    nextFaces = propagatePop(bubble, nextFaces, vertexCount)
 
   } else {
     //intersects[0].object.material[faceIndex].opacity = 1;
@@ -229,7 +277,7 @@ function onMouseDown(event){
   }
 }
 
-function onMouseUp( event ) {
+function onMouseUp(event) {
   event.preventDefault();
 
   if (event.button === 0) {

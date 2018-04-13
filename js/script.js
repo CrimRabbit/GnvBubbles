@@ -190,9 +190,6 @@ function animate() {
     }
   });
 
-  // verts.forEach((v)=>{
-  //   v.y -= v.vy;
-  // })
   // played 60 fps (60 rendering per second)
   requestAnimationFrame(animate);
 

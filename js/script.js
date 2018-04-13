@@ -73,7 +73,9 @@ function init() {
 
   // Create the element
   let geometry = new THREE.SphereGeometry(30, 200, 100);
+  geometry.rotateX(Math.PI /2);
   let innerGeometry = new THREE.SphereGeometry(29, 200, 100);
+  innerGeometry.rotateX(Math.PI /2);
   // let material = new THREE.MeshLambertMaterial({color: 0xfd59d7, wireframe : false});
 
   // let material = new THREE.MeshBasicMaterial({color: 0x33bbcc, transparent: true});
@@ -273,7 +275,9 @@ function onMouseDown(event) {
 
   let intersects = raycaster.intersectObjects(scene.children);
   if (intersects.length > 0) {
-    let nextFaces = [intersects[0].faceIndex];
+    bubble.lookAt(intersects[0].point)
+    mesh2.lookAt(intersects[0].point)
+    let nextFaces = [0];//[intersects[0].faceIndex];
     vertexCount = bubble.geometry.vertices.length;
     console.log("there are " + vertexCount + " vertices");
     for (let i = 0; i < vertexCount; i++) {

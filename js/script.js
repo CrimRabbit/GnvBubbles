@@ -13,6 +13,7 @@ let geometry, material;
 let bubble;
 let INTERSECTED;
 let verticeToFaces;
+let prevVerticeCount;
 
 let mesh2;
 let meshGeometry;
@@ -185,7 +186,7 @@ function animate() {
   let verts = mesh2.geometry.vertices;
   verts.forEach(v => {
     if (v.move) {
-      v.addScaledVector(v.v, 1);
+      v.addScaledVector(v.v.add(new THREE.Vector3(0.0,Math.random()*-0.05,0.0)), 1);
     }
   });
 
@@ -223,7 +224,7 @@ function sleep(ms) {
 
 function propagatePop(object, faceIndices, remainingCount) {
   console.log(remainingCount + " vertices are visible");
-
+  
   if (remainingCount > 0) {
     setTimeout(() => propagatePop(object, nextFaces, remainingCount), 10);
   }
@@ -235,7 +236,7 @@ function propagatePop(object, faceIndices, remainingCount) {
     face.materialIndex = 1;
 
     let connectedVertices = [face.a, face.b, face.c].filter(
-      v => object.geometry.vertices[v].visible
+      v => object.geometry.vertices[v].visible 
     );
 
     let meshVerts = mesh2.geometry.vertices;
@@ -255,6 +256,7 @@ function propagatePop(object, faceIndices, remainingCount) {
       );
     }
   }
+  //prevVerticeCount = remainingCount;
   object.geometry.groupsNeedUpdate = true;
 }
 

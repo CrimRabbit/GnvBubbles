@@ -8,11 +8,13 @@ let mouse = new THREE.Vector2();
 let controls;
 let camera, scene, renderer, light;
 
-let geometry;
-let bubble;
-let mesh2;
-let meshGeometry;
-let verticeToFaces;
+let listOfBubbles = [];
+
+// let geometry;
+// let bubble;
+// let mesh2;
+// let meshGeometry;
+// let verticeToFaces;
 
 init();
 animate();
@@ -61,11 +63,77 @@ function init() {
 
   /*** 2. ADD AN ELEMENT: THE bubble ***/
   // Create the element
+  listOfBubbles.push(createBubble(30,200,100,textureCube));
+  // let geometry = new THREE.SphereGeometry(30, 200, 100);
+  // geometry.rotateX(Math.PI /2);
+  // let innerGeometry = new THREE.SphereGeometry(29, 200, 100);
+  // innerGeometry.rotateX(Math.PI /2);
+  // let transparentMaterial = new THREE.MeshBasicMaterial({ transparent: true });
+  // transparentMaterial.opacity = 0;
 
-  // Create the element
-  let geometry = new THREE.SphereGeometry(30, 200, 100);
+  // let uniforms = {
+  //   envMap: textureCube
+  // };
+
+  // let shader = BubbleShader;
+  // let bubbleMaterial = new THREE.ShaderMaterial({
+  //   uniforms: uniforms,
+  //   vertexShader: shader.vertexShader,
+  //   fragmentShader: shader.fragmentShader,
+  //   side: THREE.DoubleSide,
+  //   transparent: true
+  // });
+
+  // bubble = new THREE.Mesh(geometry, [bubbleMaterial, transparentMaterial]);
+  // //Compute normals so that particles know where to move
+  // bubble.geometry.computeFaceNormals();
+
+  // // create a new material for the particle mesh
+  // let particleMaterial = new THREE.PointsMaterial({ size: 0.1, color: "red" });
+
+  // let meshGeometry = new THREE.Geometry();
+
+  // //initialising meshGeometry so that the particles know where to move
+  // let sphereVerts = innerGeometry.vertices;
+  // let sphereFaces = innerGeometry.faces;
+
+  // let checkVert = [];
+  // sphereFaces.forEach(f => {
+  //   let vertA = sphereVerts[f.a];
+  //   let vertB = sphereVerts[f.b];
+  //   let vertC = sphereVerts[f.c];
+
+  //   let normal = f.normal.multiplyScalar(Math.random() * 0.3);
+
+  //   vertA.v = normal;
+  //   vertB.v = normal;
+  //   vertC.v = normal;
+
+  //   vertA.move = false;
+  //   vertB.move = false;
+  //   vertC.move = false;
+
+  //   helperAddVertIfNotExist(checkVert, meshGeometry, vertA, f.a);
+  //   helperAddVertIfNotExist(checkVert, meshGeometry, vertB, f.b);
+  //   helperAddVertIfNotExist(checkVert, meshGeometry, vertC, f.c);
+  // });
+
+  // mesh2 = new THREE.Points(meshGeometry, particleMaterial);
+  // mesh2.sortParticles = true;
+
+  // scene.add(mesh2);
+  // scene.add(bubble);
+  // // console.log("bubble");
+  // // console.log(bubble);
+  // initFaces(bubble);
+  // // console.log("============");
+  // // console.log(verticeToFaces);
+}
+
+function createBubble(radius, widthSegments, heightSegments, textureCube){
+  let geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
   geometry.rotateX(Math.PI /2);
-  let innerGeometry = new THREE.SphereGeometry(29, 200, 100);
+  let innerGeometry = new THREE.SphereGeometry(radius-1, widthSegments, heightSegments);
   innerGeometry.rotateX(Math.PI /2);
   let transparentMaterial = new THREE.MeshBasicMaterial({ transparent: true });
   transparentMaterial.opacity = 0;
@@ -83,7 +151,7 @@ function init() {
     transparent: true
   });
 
-  bubble = new THREE.Mesh(geometry, [bubbleMaterial, transparentMaterial]);
+  let bubble = new THREE.Mesh(geometry, [bubbleMaterial, transparentMaterial]);
   //Compute normals so that particles know where to move
   bubble.geometry.computeFaceNormals();
 
@@ -117,20 +185,22 @@ function init() {
     helperAddVertIfNotExist(checkVert, meshGeometry, vertC, f.c);
   });
 
-  mesh2 = new THREE.Points(meshGeometry, particleMaterial);
+  let mesh2 = new THREE.Points(meshGeometry, particleMaterial);
   mesh2.sortParticles = true;
 
   scene.add(mesh2);
   scene.add(bubble);
   // console.log("bubble");
   // console.log(bubble);
-  initFaces(bubble);
+  let verticeToFaces = initFaces(bubble);
   // console.log("============");
   // console.log(verticeToFaces);
+  console.log(bubble);
+  return {uuid:bubble.uuid, bubble:bubble, mesh2:mesh2, verticeToFaces:verticeToFaces};
 }
 
 function initFaces(bubble) {
-  verticeToFaces = Array.from({ length: bubble.geometry.vertices.length }).map(
+  let verticeToFaces = Array.from({ length: bubble.geometry.vertices.length }).map(
     (x, i) => []
   );
   for (
@@ -145,6 +215,7 @@ function initFaces(bubble) {
     verticeToFaces[varB].push(faceIndex);
     verticeToFaces[varC].push(faceIndex);
   }
+  return verticeToFaces;
 }
 /**
  * @parameter Array arr, array to be added into (checkVert), to check if the vertex index exists
@@ -161,11 +232,11 @@ function helperAddVertIfNotExist(arr, geometry, vertex, vertexIndex) {
 
 /*** 3. RENDERING THE SCENE: RENDERER LOOP ***/
 function animate() {
-  mesh2.geometry.verticesNeedUpdate = true;
-  bubble.geometry.verticesNeedUpdate = true;
+  listOfBubbles[0].mesh2.geometry.verticesNeedUpdate = true;
+  listOfBubbles[0].bubble.geometry.verticesNeedUpdate = true;
 
   // Moving the particles
-  let verts = mesh2.geometry.vertices;
+  let verts = listOfBubbles[0].mesh2.geometry.vertices;
   verts.forEach(v => {
     if (v.move) {
       v.addScaledVector(v.v.add(new THREE.Vector3(0.0,Math.random()*-0.05,0.0)), 1);
@@ -202,15 +273,15 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function propagatePop(object, faceIndices, remainingCount) {
+function propagatePop(object,mesh2, verticeToFaces, faceIndices, remainingCount) {
   console.log(remainingCount + " vertices are visible");
-  
+
   if (remainingCount <= 0){
     scene.remove(object);
   }
 
   if (remainingCount > 0) {
-    setTimeout(() => propagatePop(object, nextFaces, remainingCount), 10);
+    setTimeout(() => propagatePop(object,mesh2, verticeToFaces, nextFaces, remainingCount), 10);
   }
 
   let nextFaces = [];
@@ -255,7 +326,20 @@ function onMouseDown(event) {
   raycaster.setFromCamera(mouse, camera);
 
   let intersects = raycaster.intersectObjects(scene.children);
+  console.log(intersects[0]);
   if (intersects.length > 0) {
+    let bubble,mesh2,verticeToFaces;
+    for(let bubb of listOfBubbles){
+      if(bubb.uuid === intersects[0].object.uuid){
+        console.log("match!");
+        console.log(bubb);
+        bubble = bubb.bubble;
+        mesh2 = bubb.mesh2;
+        verticeToFaces = bubb.verticeToFaces;
+      }
+    }
+    // let bubble = intersects[0].object;
+    // let mesh2 = intersects[1].object;
     bubble.lookAt(intersects[0].point)
     mesh2.lookAt(intersects[0].point)
     let nextFaces = [0];//[intersects[0].faceIndex];
@@ -265,7 +349,7 @@ function onMouseDown(event) {
       bubble.geometry.vertices[i].visible = true;
     }
 
-    nextFaces = propagatePop(bubble, nextFaces, vertexCount);
+    nextFaces = propagatePop(bubble,mesh2, verticeToFaces,nextFaces, vertexCount);
   } else {
     //intersects[0].object.material[faceIndex].opacity = 1;
     console.log("miss");
@@ -277,10 +361,4 @@ function onMouseDown(event) {
   }
 }
 
-function onMouseUp(event) {
-  //
-  event.preventDefault();
-}
-
 document.addEventListener("mousedown", onMouseDown, false);
-document.addEventListener("mouseup", onMouseUp, false);

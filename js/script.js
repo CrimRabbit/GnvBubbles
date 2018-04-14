@@ -63,7 +63,8 @@ function init() {
 
   /*** 2. ADD AN ELEMENT: THE bubble ***/
   // Create the element
-  listOfBubbles.push(createBubble(30,200,100,textureCube));
+  listOfBubbles.push(createBubble(30,200,100,0,100,0,textureCube));
+  listOfBubbles.push(createBubble(30,200,100,100,0,0,textureCube));
   // let geometry = new THREE.SphereGeometry(30, 200, 100);
   // geometry.rotateX(Math.PI /2);
   // let innerGeometry = new THREE.SphereGeometry(29, 200, 100);
@@ -130,7 +131,7 @@ function init() {
   // // console.log(verticeToFaces);
 }
 
-function createBubble(radius, widthSegments, heightSegments, textureCube){
+function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube){
   let geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
   geometry.rotateX(Math.PI /2);
   let innerGeometry = new THREE.SphereGeometry(radius-1, widthSegments, heightSegments);
@@ -190,6 +191,10 @@ function createBubble(radius, widthSegments, heightSegments, textureCube){
 
   scene.add(mesh2);
   scene.add(bubble);
+  
+  bubble.position.set(x,y,z);
+  mesh2.position.set(x,y,z);
+  //mesh2.position.set(100,0,0);
   // console.log("bubble");
   // console.log(bubble);
   let verticeToFaces = initFaces(bubble);
@@ -232,16 +237,18 @@ function helperAddVertIfNotExist(arr, geometry, vertex, vertexIndex) {
 
 /*** 3. RENDERING THE SCENE: RENDERER LOOP ***/
 function animate() {
-  listOfBubbles[0].mesh2.geometry.verticesNeedUpdate = true;
-  listOfBubbles[0].bubble.geometry.verticesNeedUpdate = true;
+  for (let i = 0; i < listOfBubbles.length; i++){
+    listOfBubbles[i].mesh2.geometry.verticesNeedUpdate = true;
+    listOfBubbles[i].bubble.geometry.verticesNeedUpdate = true;
 
-  // Moving the particles
-  let verts = listOfBubbles[0].mesh2.geometry.vertices;
-  verts.forEach(v => {
-    if (v.move) {
-      v.addScaledVector(v.v.add(new THREE.Vector3(0.0,Math.random()*-0.05,0.0)), 1);
-    }
-  });
+    // Moving the particles
+    let verts = listOfBubbles[i].mesh2.geometry.vertices;
+    verts.forEach(v => {
+      if (v.move) {
+        v.addScaledVector(v.v.add(new THREE.Vector3(0.0,Math.random()*-0.05,0.0)), 1);
+      }
+    });
+  }
 
   // played 60 fps (60 rendering per second)
   requestAnimationFrame(animate);
@@ -326,7 +333,7 @@ function onMouseDown(event) {
   raycaster.setFromCamera(mouse, camera);
 
   let intersects = raycaster.intersectObjects(scene.children);
-  console.log(intersects[0]);
+  //console.log(intersects[0]);
   if (intersects.length > 0) {
     let bubble,mesh2,verticeToFaces;
     for(let bubb of listOfBubbles){

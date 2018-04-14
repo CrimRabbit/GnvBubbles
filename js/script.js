@@ -5,7 +5,6 @@
 
 /*** 1. INIT: THE NECESSARY COMPONENTS ***/
 let mouse = new THREE.Vector2();
-let lmbDown = false;
 let controls;
 let camera, scene, renderer;
 let light;
@@ -34,9 +33,6 @@ function init() {
   );
   camera.position.set(0, 0, 100);
 
-  // Orbit controls
-  var controls = new THREE.OrbitControls(camera);
-
   // Light
   light = new THREE.PointLight(0xffff00);
   light.position.set(10, 0, 100);
@@ -51,6 +47,7 @@ function init() {
   // Controls
   controls = new THREE.OrbitControls(camera);
 
+  //Background
   let path = "textures/park/";
   let format = ".jpg";
   let urls = [
@@ -61,12 +58,8 @@ function init() {
     path + "posz" + format,
     path + "negz" + format
   ];
-
   let textureCube = new THREE.CubeTextureLoader().load(urls);
-  //list of vertice to faces, where index is the verticeIndex
-
   textureCube.format = THREE.RGBFormat;
-
   scene.background = textureCube;
 
   /*** 2. ADD AN ELEMENT: THE bubble ***/
@@ -137,13 +130,11 @@ function init() {
 
   scene.add(mesh2);
   scene.add(bubble);
-  console.log("bubble");
-  console.log(bubble);
-
+  // console.log("bubble");
+  // console.log(bubble);
   initFaces(bubble);
-
-  console.log("============");
-  console.log(verticeToFaces);
+  // console.log("============");
+  // console.log(verticeToFaces);
 }
 
 function initFaces(bubble) {
@@ -179,7 +170,6 @@ function helperAddVertIfNotExist(arr, geometry, vertex, vertexIndex) {
 /*** 3. RENDERING THE SCENE: RENDERER LOOP ***/
 function animate() {
   mesh2.geometry.verticesNeedUpdate = true;
-
   bubble.geometry.verticesNeedUpdate = true;
 
   // Moving the particles
@@ -216,12 +206,17 @@ function onMouseMove(event) {
 window.addEventListener("mousemove", onMouseMove, false);
 
 function sleep(ms) {
+  //
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function propagatePop(object, faceIndices, remainingCount) {
   console.log(remainingCount + " vertices are visible");
   
+  if (remainingCount <= 0){
+    scene.remove(object);
+  }
+
   if (remainingCount > 0) {
     setTimeout(() => propagatePop(object, nextFaces, remainingCount), 10);
   }
@@ -260,10 +255,6 @@ function propagatePop(object, faceIndices, remainingCount) {
 function onMouseDown(event) {
   event.preventDefault();
   //console.log(event)
-  // Check left button
-  if (event.button === 0) {
-    lmbDown = true;
-  }
 
   //gCamera.updateMatrixWorld();
   mouse.x = event.clientX / window.innerWidth * 2 - 1;
@@ -296,11 +287,8 @@ function onMouseDown(event) {
 }
 
 function onMouseUp(event) {
+  //
   event.preventDefault();
-
-  if (event.button === 0) {
-    lmbDown = false;
-  }
 }
 
 document.addEventListener("mousedown", onMouseDown, false);

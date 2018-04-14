@@ -6,16 +6,13 @@
 /*** 1. INIT: THE NECESSARY COMPONENTS ***/
 let mouse = new THREE.Vector2();
 let controls;
-let camera, scene, renderer;
-let light;
-let geometry, material;
-let bubble;
-let INTERSECTED;
-let verticeToFaces;
-let prevVerticeCount;
+let camera, scene, renderer, light;
 
+let geometry;
+let bubble;
 let mesh2;
 let meshGeometry;
+let verticeToFaces;
 
 init();
 animate();
@@ -70,10 +67,6 @@ function init() {
   geometry.rotateX(Math.PI /2);
   let innerGeometry = new THREE.SphereGeometry(29, 200, 100);
   innerGeometry.rotateX(Math.PI /2);
-  // let material = new THREE.MeshLambertMaterial({color: 0xfd59d7, wireframe : false});
-
-  // let material = new THREE.MeshBasicMaterial({color: 0x33bbcc, transparent: true});
-  // let material2 = new THREE.MeshBasicMaterial({color: 0xff0000, transparent: true});
   let transparentMaterial = new THREE.MeshBasicMaterial({ transparent: true });
   transparentMaterial.opacity = 0;
 
@@ -96,7 +89,6 @@ function init() {
 
   // create a new material for the particle mesh
   let particleMaterial = new THREE.PointsMaterial({ size: 0.1, color: "red" });
-  mesh = new THREE.Points(geometry, material);
 
   let meshGeometry = new THREE.Geometry();
 
@@ -248,7 +240,6 @@ function propagatePop(object, faceIndices, remainingCount) {
       );
     }
   }
-  //prevVerticeCount = remainingCount;
   object.geometry.groupsNeedUpdate = true;
 }
 

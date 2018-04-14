@@ -143,6 +143,15 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
     envMap: textureCube
   };
 
+      // point cloud material
+  let shaderMaterial = new THREE.ShaderMaterial( {
+
+      uniforms:       uniforms,
+      vertexShader:   TransparentShader.vertexShader,
+      fragmentShader: TransparentShader.fragmentShader,
+      transparent:    true
+
+  });
   let shader = BubbleShader;
   let bubbleMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
@@ -177,6 +186,10 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
     vertB.v = normal;
     vertC.v = normal;
 
+    vertA.visible = false;
+    vertB.visible = false;
+    vertC.visible = false;
+
     vertA.move = false;
     vertB.move = false;
     vertC.move = false;
@@ -191,7 +204,7 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
 
   scene.add(mesh2);
   scene.add(bubble);
-  
+
   bubble.position.set(x,y,z);
   mesh2.position.set(x,y,z);
   //mesh2.position.set(100,0,0);
@@ -224,9 +237,9 @@ function initFaces(bubble) {
 }
 /**
  * @parameter Array arr, array to be added into (checkVert), to check if the vertex index exists
- * @parameter geometry is the geometry the vertex would be added to
- * @parameter vertex is the vertex to be added
- * @@parameter vertexIndex is the index number to be checked inside of arr (checkVert)
+ * @parameter Object3D geometry is the geometry the vertex would be added to
+ * @parameter Integer vertex is the vertex to be added
+ * @parameter Integer vertexIndex is the index number to be checked inside of arr (checkVert)
  */
 function helperAddVertIfNotExist(arr, geometry, vertex, vertexIndex) {
   if (!arr.includes(vertexIndex)) {
@@ -283,22 +296,23 @@ function sleep(ms) {
 function propagatePop(object,mesh2, verticeToFaces, faceIndices, remainingCount) {
   console.log(remainingCount + " vertices are visible");
 
-  if (remainingCount <= 0){
-    scene.remove(object);
-  }
-
   if (remainingCount > 0) {
-    setTimeout(() => propagatePop(object,mesh2, verticeToFaces, nextFaces, remainingCount), 10);
+    setTimeout(() => propagatePop(object, nextFaces, remainingCount), 100);
+    // setTimeout(() => destroyParticle(), 200);
+  } else {
+    scene.remove(bubble);
+    // scene.remove(mesh2);
   }
 
   let nextFaces = [];
 
+  // make faceindices transparent
   for (let faceIdx of faceIndices) {
     let face = object.geometry.faces[faceIdx];
     face.materialIndex = 1;
 
     let connectedVertices = [face.a, face.b, face.c].filter(
-      v => object.geometry.vertices[v].visible 
+      v => object.geometry.vertices[v].visible
     );
 
     let meshVerts = mesh2.geometry.vertices;
@@ -358,13 +372,7 @@ function onMouseDown(event) {
 
     nextFaces = propagatePop(bubble,mesh2, verticeToFaces,nextFaces, vertexCount);
   } else {
-    //intersects[0].object.material[faceIndex].opacity = 1;
     console.log("miss");
-    // let deadFaces = [intersects[0].object.material[faceIndex].a,
-    //                  intersects[0].object.material[faceIndex].b,
-    //                  intersects[0].object.material[faceIndex].c];
-    // for(let i = 0;i < )
-    //intersects[0].object.material.color.setHex( 0xD1B3B3);
   }
 }
 

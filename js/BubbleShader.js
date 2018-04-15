@@ -9,10 +9,10 @@ BubbleShader = {
     varying vec3 vWorldPos;
 
     void main() {
-      vNormal = normal;
-      vec4 worldCoord = modelMatrix * vec4(position, 1.0);
+      vNormal = normalMatrix*normal;
+      vec4 worldCoord = modelViewMatrix * vec4(position, 1.0);
       vWorldPos = worldCoord.xyz;
-      vec3 worldNormal = normalize( mat3( modelMatrix[0].xyz, modelMatrix[1].xyz, modelMatrix[2].xyz ) * normal );
+      vec3 worldNormal = normalize( mat3( modelViewMatrix[0].xyz, modelViewMatrix[1].xyz, modelViewMatrix[2].xyz ) * normal );
       vec3 cameraRay = worldCoord.xyz - cameraPosition;
       vReflection = reflect(cameraRay, worldNormal);
       // vInternalReflection = vec3(vReflection.x, -vReflection.y, vReflection.z);
@@ -47,7 +47,13 @@ BubbleShader = {
         // diffuseGreen = (0.2 - abs(c-0.55)) * vec3(0.0, 1.0, 0.0);
         diffuseGreen = 0.1*(1.0 + cos(16.0*(c-0.6))) * vec3(0.0, 1.0, 0.0);
 
-      gl_FragColor = vec4(diffusePurple + diffuseBlue + diffuseGreen + reflect.xyz, 0.6);
+      vec3 lightPos = vec3(0.0, 200.0, 500.0);
+      float d = dot(normalize(lightPos - vWorldPos), vNormal);
+      vec3 col = vec3(1.0, 0.0, 0.5)*max(0.0, d*(1.0-c));
+
+      // gl_FragColor = vec4(col, 1.0);
+      gl_FragColor = vec4(col + reflect.xyz, 0.3+0.2*length(reflect.xyz));
+      // gl_FragColor = vec4(diffusePurple + diffuseBlue + diffuseGreen + reflect.xyz, 0.6);
       // gl_FragColor = vec4(diffusePurple + diffuseBlue + diffuseGreen, 1.0);
       // gl_FragColor = vec4(diffuseGreen, 1.0);
     }

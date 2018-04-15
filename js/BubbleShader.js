@@ -5,16 +5,16 @@ BubbleShader = {
     attribute float displacement;
     varying vec3 vReflection;
     varying vec3 vInternalReflection;
-    varying vec3 vNormal;
+    varying vec3 vWorldNormal;
     varying vec3 vWorldPos;
 
     void main() {
-      vNormal = normalMatrix*normal;
-      vec4 worldCoord = modelViewMatrix * vec4(position, 1.0);
+      vec4 worldCoord = modelMatrix * vec4(position, 1.0);
       vWorldPos = worldCoord.xyz;
-      vec3 worldNormal = normalize( mat3( modelViewMatrix[0].xyz, modelViewMatrix[1].xyz, modelViewMatrix[2].xyz ) * normal );
+      vWorldNormal = normalize( mat3( modelMatrix[0].xyz, modelMatrix[1].xyz, modelMatrix[2].xyz ) * normal );
       vec3 cameraRay = worldCoord.xyz - cameraPosition;
-      vReflection = reflect(cameraRay, worldNormal);
+      vReflection = reflect(cameraRay, vWorldNormal);
+
       // vInternalReflection = vec3(vReflection.x, -vReflection.y, vReflection.z);
       // vInternalReflection = reflect(vReflection, cameraRay);
 
@@ -23,12 +23,12 @@ BubbleShader = {
 
   fragmentShader: `
     varying vec3 vReflection;
-    varying vec3 vNormal;
+    varying vec3 vWorldNormal;
     varying vec3 vWorldPos;
     uniform samplerCube envMap;
 
     void main() {
-      float c = dot(normalize(cameraPosition - vWorldPos), vNormal);
+      float c = dot(normalize(cameraPosition - vWorldPos), vWorldNormal);
       vec4 reflect = textureCube(envMap, vReflection);
 
       // vec3 diffusePurple = (0.25 - pow(c-0.5, 2.0)) * vec3(1.0, 0.0, 1.0);
@@ -48,7 +48,7 @@ BubbleShader = {
         diffuseGreen = 0.1*(1.0 + cos(16.0*(c-0.6))) * vec3(0.0, 1.0, 0.0);
 
       vec3 lightPos = vec3(0.0, 200.0, 500.0);
-      float d = dot(normalize(lightPos - vWorldPos), vNormal);
+      float d = dot(normalize(lightPos - vWorldPos), vWorldNormal);
       vec3 col = vec3(1.0, 0.0, 0.5)*max(0.0, d*(1.0-c));
 
       // gl_FragColor = vec4(col, 1.0);

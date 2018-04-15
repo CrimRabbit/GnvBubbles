@@ -55,22 +55,31 @@ function init() {
   textureCube.format = THREE.RGBFormat;
   scene.background = textureCube;
 
-  bubblesList.push(createBubble(30,200,100,0,100,0,textureCube));
-  bubblesList.push(createBubble(30,200,100,0,0,0,textureCube));
+  bubblesList.push(createBubble(30,50,25,50,100,0,textureCube));
+  bubblesList.push(createBubble(30,50,25,0,0,0,textureCube));
+  bubblesList.push(createBubble(30,50,25,100,50,-150,textureCube));
+  bubblesList.push(createBubble(30,50,25,-200,0,-250,textureCube));
 }
 
 function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube){
   let geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
   geometry.rotateX(Math.PI /2);
-  let innerGeometry = new THREE.SphereGeometry(radius-0.5, widthSegments, heightSegments);
+  let innerGeometry = new THREE.SphereGeometry(radius-0.1, widthSegments, heightSegments);
   innerGeometry.rotateX(Math.PI /2);
   let particleGeometry = new THREE.SphereGeometry(radius-1, widthSegments, heightSegments);
   particleGeometry.rotateX(Math.PI /2);
   let transparentMaterial = new THREE.MeshBasicMaterial({ transparent: true });
   transparentMaterial.opacity = 0;
 
+  let rand = Math.random();
+  let col = rand < 0.4 ? 0xff0099 : (rand < 0.7 ? 0x00ffcc : 0x999900);
+  let col2 = rand < 0.4 ? 0xcccc00 : (rand < 0.7 ? 0x660033 : 0x990066);
+
   let uniforms = {
-    envMap: textureCube
+    envMap: textureCube,
+    priCol: { value: new THREE.Color( col ) },
+    secCol: { value: new THREE.Color( col2 ) },
+    lightDir: { value: new THREE.Vector3(Math.random()*1000-500, Math.random()*1000-500, Math.random()*1000-500) }
   };
 
       // point cloud material

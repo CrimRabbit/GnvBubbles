@@ -56,14 +56,16 @@ function init() {
   scene.background = textureCube;
 
   bubblesList.push(createBubble(30,200,100,0,100,0,textureCube));
-  bubblesList.push(createBubble(30,200,100,100,0,0,textureCube));
+  bubblesList.push(createBubble(30,200,100,0,0,0,textureCube));
 }
 
 function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube){
   let geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
   geometry.rotateX(Math.PI /2);
-  let innerGeometry = new THREE.SphereGeometry(radius-1, widthSegments, heightSegments);
+  let innerGeometry = new THREE.SphereGeometry(radius-0.5, widthSegments, heightSegments);
   innerGeometry.rotateX(Math.PI /2);
+  let particleGeometry = new THREE.SphereGeometry(radius-1, widthSegments, heightSegments);
+  particleGeometry.rotateX(Math.PI /2);
   let transparentMaterial = new THREE.MeshBasicMaterial({ transparent: true });
   transparentMaterial.opacity = 0;
 
@@ -80,16 +82,21 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
       transparent:    true
 
   });
-  let shader = BubbleShader;
-  let bubbleMaterial = new THREE.ShaderMaterial({
+
+  let bubbleMaterialProperties = {
     uniforms: uniforms,
-    vertexShader: shader.vertexShader,
-    fragmentShader: shader.fragmentShader,
-    side: THREE.DoubleSide,
+    vertexShader: BubbleShader.vertexShader,
+    fragmentShader: BubbleShader.fragmentShader,
     transparent: true
-  });
+  };
+
+  let bubbleMaterial = new THREE.ShaderMaterial({side: THREE.FrontSide, ...bubbleMaterialProperties});
+  let bubbleInnerMaterial = new THREE.ShaderMaterial({side: THREE.BackSide, ...bubbleMaterialProperties});
 
   let bubble = new THREE.Mesh(geometry, [bubbleMaterial, transparentMaterial]);
+  bubble.renderOrder = 1;   // make innerMesh render first
+  let innerMesh = new THREE.Mesh(innerGeometry, [bubbleInnerMaterial, transparentMaterial]);
+
   //Compute normals so that particles know where to move
   bubble.geometry.computeFaceNormals();
 
@@ -99,8 +106,8 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
   let meshGeometry = new THREE.Geometry();
 
   //initialising meshGeometry so that the particles know where to move
-  let sphereVerts = innerGeometry.vertices;
-  let sphereFaces = innerGeometry.faces;
+  let sphereVerts = particleGeometry.vertices;
+  let sphereFaces = particleGeometry.faces;
 
   let checkVert = [];
   sphereFaces.forEach(f => {
@@ -130,14 +137,17 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
   let particleMesh = new THREE.Points(meshGeometry, particleMaterial);
   particleMesh.sortParticles = true;
 
-  scene.add(particleMesh);
   scene.add(bubble);
+  scene.add(innerMesh);
+  scene.add(particleMesh);
 
   bubble.position.set(x,y,z);
+  innerMesh.position.set(x,y,z);
   particleMesh.position.set(x,y,z);
 
   let verticeToFaces = initFaces(bubble);
 
+  bubble.innerMesh = innerMesh;
   bubble.particleMesh = particleMesh;
   bubble.verticeToFaces = verticeToFaces;
   return bubble;
@@ -178,7 +188,6 @@ function helperAddVertIfNotExist(arr, geometry, vertex, vertexIndex) {
 function animate() {
   for (let i = 0; i < bubblesList.length; i++){
     bubblesList[i].particleMesh.geometry.verticesNeedUpdate = true;
-    bubblesList[i].geometry.verticesNeedUpdate = true;
 
     // Moving the particles
     let verts = bubblesList[i].particleMesh.geometry.vertices;
@@ -214,22 +223,17 @@ function onMouseMove(event) {
 
 window.addEventListener("mousemove", onMouseMove, false);
 
-function sleep(ms) {
-  //
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 function propagatePop(object, faceIndices, remainingCount) {
   console.log(remainingCount + " vertices are visible");
-
-
-
   let nextFaces = [];
 
   // make faceindices transparent
   for (let faceIdx of faceIndices) {
     let face = object.geometry.faces[faceIdx];
+    let innerFace = object.innerMesh.geometry.faces[faceIdx];
+
     face.materialIndex = 1;
+    innerFace.materialIndex = 1;
 
     let connectedVertices = [face.a, face.b, face.c].filter(
       v => object.geometry.vertices[v].visible
@@ -254,9 +258,10 @@ function propagatePop(object, faceIndices, remainingCount) {
     }
   }
   object.geometry.groupsNeedUpdate = true;
+  object.innerMesh.geometry.groupsNeedUpdate = true;
 
   if (remainingCount > 0) {
-    setTimeout(() => propagatePop(object, nextFaces, remainingCount), 100);
+    setTimeout(() => propagatePop(object, nextFaces, remainingCount), 1000);
     // setTimeout(() => destroyParticle(), 200);
   } else {
     scene.remove(object);
@@ -282,6 +287,7 @@ function onMouseDown(event) {
     bubble = bubblesList.filter(b => b.uuid === intersects[0].object.uuid)[0]
 
     bubble.lookAt(intersects[0].point)
+    bubble.innerMesh.lookAt(intersects[0].point)
     bubble.particleMesh.lookAt(intersects[0].point)
     let nextFaces = [0]; //[intersects[0].faceIndex];
     vertexCount = bubble.geometry.vertices.length;

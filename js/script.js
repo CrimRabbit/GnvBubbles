@@ -12,6 +12,7 @@ let bubblesList = [];
 let verticeToFaces = null;
 
 init();
+let timeStep = 0;
 animate();
 
 function init() {
@@ -25,7 +26,7 @@ function init() {
     0.1,
     1000
   );
-  camera.position.set(0, 0, 100);
+  camera.position.set(-20, 0, 0);
 
   // Light
   light = new THREE.PointLight(0xffff00);
@@ -56,10 +57,9 @@ function init() {
   textureCube.format = THREE.RGBFormat;
   scene.background = textureCube;
 
-  bubblesList.push(createBubble(30,50,25,50,100,0,textureCube));
-  bubblesList.push(createBubble(30,50,25,0,0,-50,textureCube));
-  bubblesList.push(createBubble(30,50,25,100,50,-150,textureCube));
-  bubblesList.push(createBubble(30,50,25,-200,0,-250,textureCube));
+  for (let i=0; i<15; i++) {
+    setTimeout(() => bubblesList.push(createBubble(10,50,25,0,-10,0,textureCube)), i*700)
+  }
 }
 
 function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube){
@@ -192,8 +192,13 @@ function helperAddVertIfNotExist(arr, geometry, vertex, vertexIndex) {
 }
 
 function animate() {
+  timeStep = timeStep+1;
+
   for (let i = 0; i < bubblesList.length; i++){
     bubblesList[i].particleMesh.geometry.verticesNeedUpdate = true;
+    bubblesList[i].position.x += 0.5 + 0.2*Math.random();
+    bubblesList[i].position.y += 0.1 + 0.2*(i%4)* Math.sin(timeStep/100+i);
+    bubblesList[i].position.z += 0.5*Math.sin(timeStep/400+i**2);
 
     // Moving the particles
     let verts = bubblesList[i].particleMesh.geometry.vertices;

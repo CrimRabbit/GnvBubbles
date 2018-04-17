@@ -10,6 +10,8 @@ let camera, scene, renderer, light;
 
 let bubblesList = [];
 let verticeToFaces = null;
+let textureCube;
+//let globalWind = [0.0,0.0,0.0];
 
 init();
 let timeStep = 0;
@@ -53,7 +55,7 @@ function init() {
     path + "posz" + format,
     path + "negz" + format
   ];
-  let textureCube = new THREE.CubeTextureLoader().load(urls);
+  textureCube = new THREE.CubeTextureLoader().load(urls);
   textureCube.format = THREE.RGBFormat;
   scene.background = textureCube;
 
@@ -224,16 +226,6 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-function onMouseMove(event) {
-  // calculate mouse position in normalized device coordinates
-  // (-1 to +1) for both components
-
-  mouse.x = event.clientX / window.innerWidth * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-}
-
-window.addEventListener("mousemove", onMouseMove, false);
-
 function propagatePop(bubble, faceIndices, remainingCount) {
   console.log(remainingCount + " vertices are visible");
   let nextFaces = [];
@@ -275,10 +267,21 @@ function propagatePop(bubble, faceIndices, remainingCount) {
     // setTimeout(() => destroyParticle(), 200);
   } else {
     scene.remove(bubble)
+    bubblesList = bubblesList.filter(b => b.uuid != bubble.uuid);
     bubble = null
     // scene.remove(particleMesh);
   }
 }
+
+function onMouseMove(event) {
+  // calculate mouse position in normalized device coordinates
+  // (-1 to +1) for both components
+
+  mouse.x = event.clientX / window.innerWidth * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+}
+
+window.addEventListener("mousemove", onMouseMove, false);
 
 function onMouseDown(event) {
   event.preventDefault();
@@ -294,7 +297,6 @@ function onMouseDown(event) {
   let intersects = raycaster.intersectObjects(bubblesList);
   //console.log(intersects[0]);
   if (intersects.length > 0) {
-
     let bubble = bubblesList.filter(b => b.uuid === intersects[0].object.uuid)[0]
 
     bubble.lookAt(intersects[0].point)
@@ -313,3 +315,55 @@ function onMouseDown(event) {
 }
 
 document.addEventListener("mousedown", onMouseDown, false);
+
+function onKeyDown ( event ) {
+  switch( event.keyCode ) {
+
+  case 32: // space
+    for (let i=0; i<10; i++) {
+      let rad = Math.floor((Math.random() * 10) + 1);
+      setTimeout(() => bubblesList.push(createBubble(rad,50,25,0,-10,0,textureCube)), i*100)
+    }
+    break;
+
+  case 87: // w
+    //globalWind = [0,0,5];
+    break;
+
+  case 65: // a
+    //globalWind = [0,5,0];
+    break;
+
+  case 83: // s
+    break;
+
+  case 68: // d
+    break;
+
+  }
+}
+
+document.addEventListener( 'keydown', onKeyDown, false );        
+
+// function onKeyUp ( event ) {
+//   switch( event.keyCode ) {
+
+//   case 32: // space
+//     break;
+    
+//   case 87: // w
+//     break;
+
+//   case 65: // a
+//     break;
+
+//   case 83: // s
+//     break;
+
+//   case 68: // d
+//     break;
+
+//   }
+// }
+
+// document.addEventListener( 'keyup', onKeyUp, false );

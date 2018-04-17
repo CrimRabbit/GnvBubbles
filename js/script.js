@@ -226,8 +226,9 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-function propagatePop(bubble, faceIndices, remainingCount, prevRemainingCount = 0) {
+function propagatePop(bubble, faceIndices, remainingCount) {
   console.log(remainingCount + " vertices are visible");
+  let prevRemainingCount = remainingCount;
   let nextFaces = [];
 
   // make faceindices transparent
@@ -263,7 +264,7 @@ function propagatePop(bubble, faceIndices, remainingCount, prevRemainingCount = 
   bubble.innerMesh.geometry.verticesNeedUpdate = true;
 
   if (remainingCount > 0 && remainingCount != prevRemainingCount) {
-    setTimeout(() => propagatePop(bubble, nextFaces, remainingCount, remainingCount), 10);
+    setTimeout(() => propagatePop(bubble, nextFaces, remainingCount), 10);
     // setTimeout(() => destroyParticle(), 200);
   } else {
     scene.remove(bubble)

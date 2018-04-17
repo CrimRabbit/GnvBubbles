@@ -11,7 +11,7 @@ let camera, scene, renderer, light;
 let bubblesList = [];
 let verticeToFaces = null;
 let textureCube;
-//let globalWind = [0.0,0.0,0.0];
+let globalWind = [0.0,0.0,0.0];
 
 init();
 let timeStep = 0;
@@ -198,9 +198,9 @@ function animate() {
 
   for (let i = 0; i < bubblesList.length; i++){
     bubblesList[i].particleMesh.geometry.verticesNeedUpdate = true;
-    bubblesList[i].position.x += 0.5 + 0.2*Math.random();
-    bubblesList[i].position.y += 0.1 + 0.2*(i%4)* Math.sin(timeStep/100+i);
-    bubblesList[i].position.z += 0.5*Math.sin(timeStep/400+i**2);
+    bubblesList[i].position.x += Math.random()*globalWind[0] + 0.5 + 0.2*Math.random();
+    bubblesList[i].position.y += Math.random()*globalWind[1] +0.1 + 0.2*(i%4)* Math.sin(timeStep/100+i);
+    bubblesList[i].position.z += Math.random()*globalWind[2] +0.5*Math.sin(timeStep/400+i**2);
 
     // Moving the particles
     let verts = bubblesList[i].particleMesh.geometry.vertices;
@@ -226,7 +226,7 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-function propagatePop(bubble, faceIndices, remainingCount) {
+function propagatePop(bubble, faceIndices, remainingCount, prevRemainingCount = 0) {
   console.log(remainingCount + " vertices are visible");
   let nextFaces = [];
 
@@ -262,8 +262,8 @@ function propagatePop(bubble, faceIndices, remainingCount) {
   bubble.innerMesh.geometry.groupsNeedUpdate = true;
   bubble.innerMesh.geometry.verticesNeedUpdate = true;
 
-  if (remainingCount > 0) {
-    setTimeout(() => propagatePop(bubble, nextFaces, remainingCount), 10);
+  if (remainingCount > 0 && remainingCount != prevRemainingCount) {
+    setTimeout(() => propagatePop(bubble, nextFaces, remainingCount, remainingCount), 10);
     // setTimeout(() => destroyParticle(), 200);
   } else {
     scene.remove(bubble)
@@ -327,17 +327,19 @@ function onKeyDown ( event ) {
     break;
 
   case 87: // w
-    //globalWind = [0,0,5];
+    //globalWind = [-2.5,0,0];
     break;
 
   case 65: // a
-    //globalWind = [0,5,0];
+    //globalWind = [0,0,-2.5];
     break;
 
   case 83: // s
+    //globalWind = [0,0,-2.5];
     break;
 
   case 68: // d
+    //globalWind = [0,0,2.5];
     break;
 
   }

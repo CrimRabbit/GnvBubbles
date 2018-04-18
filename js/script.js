@@ -69,7 +69,7 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
   geometry.rotateX(Math.PI /2);
   let innerGeometry = new THREE.SphereGeometry(radius-0.1, widthSegments, heightSegments);
   innerGeometry.rotateX(Math.PI /2);
-  let particleGeometry = new THREE.SphereGeometry(radius-1, widthSegments, heightSegments);
+  let particleGeometry = new THREE.SphereGeometry(radius-0.2, widthSegments, heightSegments);
   particleGeometry.rotateX(Math.PI /2);
   let transparentMaterial = new THREE.MeshBasicMaterial({ transparent: true });
   transparentMaterial.opacity = 0;
@@ -85,26 +85,12 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
     lightDir: { value: new THREE.Vector3(Math.random()*1000-500, Math.random()*1000-500, Math.random()*1000-500) }
   };
 
-      // point cloud material
-  let transparentUniforms = {
-
-      color: { value: new THREE.Color( 0xffffff ) },
-
-  };
-  let TransparentShaderMaterial = new THREE.ShaderMaterial( {
-
-      uniforms:       transparentUniforms,
-      vertexShader:   TransparentShader.vertexShader,
-      fragmentShader: TransparentShader.fragmentShader,
-      transparent:    true
-
-  });
 
   let bubbleMaterialProperties = {
     uniforms: uniforms,
     vertexShader: BubbleShader.vertexShader,
     fragmentShader: BubbleShader.fragmentShader,
-    transparent: true
+    transparent: true,
   };
 
   let bubbleMaterial = new THREE.ShaderMaterial({side: THREE.FrontSide, ...bubbleMaterialProperties});
@@ -118,6 +104,7 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
   bubble.geometry.computeFaceNormals();
 
   // create a new material for the particle mesh
+<<<<<<< HEAD
   let particleMaterial = new THREE.PointsMaterial({ size: 0.1, color: 0xffffff });
 
   // point cloud geometry
@@ -134,6 +121,14 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
 
   }
   // geometry.addAttribute( 'alpha', new THREE.BufferAttribute( alphas, 1 ) );
+=======
+  let particleMaterial = new THREE.PointsMaterial({
+    size: 0.2,
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0,
+  });
+>>>>>>>  particles hidden first, appear only when clicked
 
   let meshGeometry = new THREE.Geometry();
 
@@ -284,7 +279,7 @@ function propagatePop(bubble, faceIndices, remainingCount) {
   bubble.innerMesh.geometry.verticesNeedUpdate = true;
 
   if (remainingCount > 0 && remainingCount != prevRemainingCount) {
-    setTimeout(() => propagatePop(bubble, nextFaces, remainingCount), 10);
+    setTimeout(() => propagatePop(bubble, nextFaces, remainingCount), 100);
     // setTimeout(() => destroyParticle(), 200);
   } else {
     scene.remove(bubble)
@@ -319,7 +314,7 @@ function onMouseDown(event) {
   //console.log(intersects[0]);
   if (intersects.length > 0) {
     let bubble = bubblesList.filter(b => b.uuid === intersects[0].object.uuid)[0]
-
+    bubble.particleMesh.material.opacity = 0.3;
     bubble.lookAt(intersects[0].point)
 
     let nextFaces = [0]; //[intersects[0].faceIndex];

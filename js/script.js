@@ -13,6 +13,7 @@ let verticeToFaces = null;
 let textureCube;
 let globalWind = new THREE.Vector3(0.0,0.0,0.0);
 let spawningCount = 0;
+let sprite;
 
 init();
 let timeStep = 0;
@@ -60,6 +61,8 @@ function init() {
   textureCube.format = THREE.RGBFormat;
   scene.background = textureCube;
 
+	sprite = new THREE.TextureLoader().load( "../textures/sprites/disc.png" );
+
   for (let i=0; i<15; i++) {
     setTimeout(() => bubblesList.push(createBubble(10,50,25,0,-10,0,textureCube)), i*700)
   }
@@ -101,6 +104,17 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
 
   //Compute normals so that particles know where to move
   bubble.geometry.computeFaceNormals();
+
+  bubble.bubbleRandom = Math.random() * (2 - (-2) + (-2));
+  let maxInitVelo = 0.5;
+  let minInitVelo = -0.5;
+  let xMaxInitVelo = 2.0;
+  let xMinInitVelo = 0.5;
+
+  bubble.velocity = new THREE.Vector3(
+    Math.random() * (xMaxInitVelo - xMinInitVelo) + xMinInitVelo,
+    Math.random() * (maxInitVelo - minInitVelo) + minInitVelo,
+    Math.random() * (maxInitVelo - minInitVelo) + minInitVelo);
 
   bubble.add(innerMesh)
   scene.add(bubble);
@@ -150,6 +164,7 @@ function animate() {
   for (let i = 0; i < bubblesList.length; i++){
     let bubb = bubblesList[i];
     //console.log(bubb);
+
     bubb.position.x += bubb.velocity.x + bubb.bubbleRandom*globalWind.x;
     bubb.position.y += bubb.velocity.y + bubb.bubbleRandom*globalWind.y + Math.sin(timeStep/100 * bubb.bubbleRandom);
     bubb.position.z += bubb.velocity.z + bubb.bubbleRandom*globalWind.z + Math.sin(timeStep/400 * bubb.bubbleRandom);
@@ -231,7 +246,7 @@ function propagatePop(bubble, faceIndices, remainingCount) {
   }
 }
 
-function addMesh(bubble) {
+function addParticleMesh(bubble) {
   let radius = bubble.geometry.parameters.radius;
   let widthSegments = bubble.geometry.parameters.widthSegments;
   let heightSegments = bubble.geometry.parameters.heightSegments;
@@ -246,6 +261,7 @@ function addMesh(bubble) {
     color: 0xffffff,
     transparent: true,
     opacity: 0.9,
+    map: sprite,
   });
 
   let meshGeometry = new THREE.Geometry();
@@ -310,8 +326,8 @@ function onMouseDown(event) {
   //console.log(intersects[0]);
   if (intersects.length > 0) {
     let bubble = bubblesList.filter(b => b.uuid === intersects[0].object.uuid)[0]
-    addMesh(bubble);
-    console.log(bubble);
+    //add particle mesh only when clicked
+    addParticleMesh(bubble);
     bubble.lookAt(intersects[0].point)
 
     let nextFaces = [0]; //[intersects[0].faceIndex];

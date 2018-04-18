@@ -84,9 +84,14 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
   };
 
       // point cloud material
-  let shaderMaterial = new THREE.ShaderMaterial( {
+  let transparentUniforms = {
 
-      uniforms:       uniforms,
+      color: { value: new THREE.Color( 0xffffff ) },
+
+  };
+  let TransparentShaderMaterial = new THREE.ShaderMaterial( {
+
+      uniforms:       transparentUniforms,
       vertexShader:   TransparentShader.vertexShader,
       fragmentShader: TransparentShader.fragmentShader,
       transparent:    true
@@ -111,7 +116,22 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
   bubble.geometry.computeFaceNormals();
 
   // create a new material for the particle mesh
-  let particleMaterial = new THREE.PointsMaterial({ size: 0.1, color: "red" });
+  let particleMaterial = new THREE.PointsMaterial({ size: 0.1, color: "0xffffff" });
+
+  // point cloud geometry
+  let pointGeometry = new THREE.SphereBufferGeometry( radius-1, widthSegments, heightSegments );
+
+  // add an attribute
+  let numVertices = pointGeometry.attributes.position.count;
+  let alphas = new Float32Array( numVertices * 1 ); // 1 values per vertex
+
+  for( var i = 0; i < numVertices; i ++ ) {
+
+      // set alpha randomly
+      alphas[ i ] = 1;
+
+  }
+  geometry.addAttribute( 'alpha', new THREE.BufferAttribute( alphas, 1 ) );
 
   let meshGeometry = new THREE.Geometry();
 
@@ -235,7 +255,7 @@ function onMouseMove(event) {
 window.addEventListener("mousemove", onMouseMove, false);
 
 function propagatePop(bubble, faceIndices, remainingCount) {
-  console.log(remainingCount + " vertices are visible");
+  // console.log(remainingCount + " vertices are visible");
   let nextFaces = [];
 
   // make faceindices transparent

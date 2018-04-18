@@ -11,7 +11,8 @@ let camera, scene, renderer, light;
 let bubblesList = [];
 let verticeToFaces = null;
 let textureCube;
-let globalWind = [0.0,0.0,0.0];
+let globalWind = new THREE.Vector3(0.0,0.0,0.0);
+let spawningCount = 0;
 
 init();
 let timeStep = 0;
@@ -110,12 +111,23 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
     transparent: true,
     opacity: 0,
   });
-
   let meshGeometry = new THREE.Geometry();
 
   //initialising meshGeometry so that the particles know where to move
   let sphereVerts = particleGeometry.vertices;
   let sphereFaces = particleGeometry.faces;
+
+  //setting bubble's random & velocity for movement
+  bubble.bubbleRandom = Math.random() * (2 - (-2) + (-2));
+  let maxInitVelo = 0.5;
+  let minInitVelo = -0.5;
+  let xMaxInitVelo = 2.0;
+  let xMinInitVelo = 0.5;
+
+  bubble.velocity = new THREE.Vector3(
+    Math.random() * (xMaxInitVelo - xMinInitVelo) + xMinInitVelo,
+    Math.random() * (maxInitVelo - minInitVelo) + minInitVelo,
+    Math.random() * (maxInitVelo - minInitVelo) + minInitVelo);
 
   let checkVert = [];
   sphereFaces.forEach(f => {
@@ -193,10 +205,16 @@ function animate() {
   timeStep = timeStep+1;
 
   for (let i = 0; i < bubblesList.length; i++){
-    bubblesList[i].particleMesh.geometry.verticesNeedUpdate = true;
-    bubblesList[i].position.x += Math.random()*globalWind[0] + 0.5 + 0.2*Math.random();
-    bubblesList[i].position.y += Math.random()*globalWind[1] +0.1 + 0.2*(i%4)* Math.sin(timeStep/100+i);
-    bubblesList[i].position.z += Math.random()*globalWind[2] +0.5*Math.sin(timeStep/400+i**2);
+    let bubb = bubblesList[i];
+    //console.log(bubb);
+    bubb.particleMesh.geometry.verticesNeedUpdate = true;
+    bubb.position.x += bubb.velocity.x + bubb.bubbleRandom*globalWind.x;
+    bubb.position.y += bubb.velocity.y + bubb.bubbleRandom*globalWind.y + Math.sin(timeStep/100 * bubb.bubbleRandom);
+    bubb.position.z += bubb.velocity.z + bubb.bubbleRandom*globalWind.z + Math.sin(timeStep/400 * bubb.bubbleRandom);
+
+    //bubblesList[i].position.x += Math.random()*globalWind[0] + 0.5 + 0.2*Math.random();
+    //bubblesList[i].position.y += Math.random()*globalWind[1] +0.1 + 0.2*(i%4)* Math.sin(timeStep/100+i);
+    //bubblesList[i].position.z += Math.random()*globalWind[2] +0.5*Math.sin(timeStep/400+i**2);
 
     // Moving the particles
     let verts = bubblesList[i].particleMesh.geometry.vertices;
@@ -313,56 +331,69 @@ function onMouseDown(event) {
 
 document.addEventListener("mousedown", onMouseDown, false);
 
-function onKeyDown ( event ) {
-  switch( event.keyCode ) {
-
-  case 32: // space
-    for (let i=0; i<10; i++) {
-      let rad = Math.floor((Math.random() * 10) + 1);
-      setTimeout(() => bubblesList.push(createBubble(rad,50,25,0,-10,0,textureCube)), i*100)
-    }
-    break;
-
-  case 87: // w
-    //globalWind = [-2.5,0,0];
-    break;
-
-  case 65: // a
-    //globalWind = [0,0,-2.5];
-    break;
-
-  case 83: // s
-    //globalWind = [0,0,-2.5];
-    break;
-
-  case 68: // d
-    //globalWind = [0,0,2.5];
-    break;
-
-  }
-}
-
-document.addEventListener( 'keydown', onKeyDown, false );
-
-// function onKeyUp ( event ) {
+// function onKeyDown ( event ) {
 //   switch( event.keyCode ) {
 
 //   case 32: // space
+//       for (let i=0; i<10; i++) {
+//         let rad = Math.floor((Math.random() * 10) + 3);
+//         setTimeout(() => bubblesList.push(createBubble(rad,50,25,0,-10,0,textureCube)), i*100)
+//       }
 //     break;
 
 //   case 87: // w
+//     globalWind = new THREE.Vector3(4.5,0,0);
 //     break;
 
 //   case 65: // a
+//     globalWind = new THREE.Vector3(0,0,-4.5);
 //     break;
 
 //   case 83: // s
+//     globalWind = new THREE.Vector3(-4.5,0,0);
 //     break;
 
 //   case 68: // d
+//     globalWind = new THREE.Vector3(0,0,4.5);
 //     break;
 
+//   case 88: // x - cancels wind
+//     globalWind = new THREE.Vector3(0,0,0);
+//     break;
 //   }
 // }
 
-// document.addEventListener( 'keyup', onKeyUp, false );
+// document.addEventListener( 'keydown', onKeyDown, false );
+
+function onKeyUp ( event ) {
+  switch( event.keyCode ) {
+  case 32: // space
+      for (let i=0; i<10; i++) {
+        let rad = Math.floor((Math.random() * 10) + 3);
+        setTimeout(() => bubblesList.push(createBubble(rad,50,25,0,-10,0,textureCube)), i*100)
+      }
+    break;
+
+  case 87: // w
+    globalWind = new THREE.Vector3(4.5,0,0);
+    break;
+
+  case 65: // a
+    globalWind = new THREE.Vector3(0,0,-4.5);
+    break;
+
+  case 83: // s
+    globalWind = new THREE.Vector3(-4.5,0,0);
+    break;
+
+  case 68: // d
+    globalWind = new THREE.Vector3(0,0,4.5);
+    break;
+
+  case 88: // x - cancels wind
+    globalWind = new THREE.Vector3(0,0,0);
+    break;
+  }
+}
+
+document.addEventListener( 'keyup', onKeyUp, false );

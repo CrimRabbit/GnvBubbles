@@ -45,7 +45,7 @@ function init() {
   controls = new THREE.OrbitControls(camera);
 
   //Background
-  let path = "textures/park/";
+  let path = "textures/Lycksele/";
   let format = ".jpg";
   let urls = [
     path + "posx" + format,
@@ -118,7 +118,7 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
   bubble.geometry.computeFaceNormals();
 
   // create a new material for the particle mesh
-  let particleMaterial = new THREE.PointsMaterial({ size: 0.1, color: "0xffffff" });
+  let particleMaterial = new THREE.PointsMaterial({ size: 0.1, color: 0xffffff });
 
   // point cloud geometry
   let pointGeometry = new THREE.SphereBufferGeometry( radius-1, widthSegments, heightSegments );
@@ -133,7 +133,7 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
       alphas[ i ] = 1;
 
   }
-  geometry.addAttribute( 'alpha', new THREE.BufferAttribute( alphas, 1 ) );
+  // geometry.addAttribute( 'alpha', new THREE.BufferAttribute( alphas, 1 ) );
 
   let meshGeometry = new THREE.Geometry();
 

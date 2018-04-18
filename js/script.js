@@ -7,6 +7,8 @@
 let mouse = new THREE.Vector2();
 let controls;
 let camera, scene, renderer, light;
+let observeMode = false;
+let intervals = 10; //for observe mode
 
 let bubblesList = [];
 let verticeToFaces = null;
@@ -45,6 +47,9 @@ function init() {
 
   // Controls
   controls = new THREE.OrbitControls(camera);
+  controls.enableKeys = true;
+  controls.keyPanSpeed = 15.0;
+  controls.minZoom = -9999.0;
 
   //Background
   let path = "textures/Lycksele/";
@@ -165,19 +170,20 @@ function animate() {
   for (let i = 0; i < bubblesList.length; i++){
     let bubb = bubblesList[i];
     //console.log(bubb);
-
-    bubb.position.x += bubb.velocity.x + bubb.bubbleRandom*globalWind.x;
-    bubb.position.y += bubb.velocity.y + bubb.bubbleRandom*globalWind.y + Math.sin(timeStep/100 * bubb.bubbleRandom);
-    bubb.position.z += bubb.velocity.z + bubb.bubbleRandom*globalWind.z + Math.sin(timeStep/400 * bubb.bubbleRandom);
-
+    if (!observeMode){
+      bubb.position.x += bubb.velocity.x + bubb.bubbleRandom*globalWind.x;
+      bubb.position.y += bubb.velocity.y + bubb.bubbleRandom*globalWind.y + Math.sin(timeStep/100 * bubb.bubbleRandom);
+      bubb.position.z += bubb.velocity.z + bubb.bubbleRandom*globalWind.z + Math.sin(timeStep/400 * bubb.bubbleRandom);
+      bubb.velocity.y -= 0.001;
+    }
     //bubblesList[i].position.x += Math.random()*globalWind[0] + 0.5 + 0.2*Math.random();
     //bubblesList[i].position.y += Math.random()*globalWind[1] +0.1 + 0.2*(i%4)* Math.sin(timeStep/100+i);
     //bubblesList[i].position.z += Math.random()*globalWind[2] +0.5*Math.sin(timeStep/400+i**2);
 
     // Moving the particles
-    if (bubblesList[i].particleMesh !== undefined){
-      bubblesList[i].particleMesh.geometry.verticesNeedUpdate = true;
-      let verts = bubblesList[i].particleMesh.geometry.vertices;
+    if (bubb.particleMesh !== undefined){
+      bubb.particleMesh.geometry.verticesNeedUpdate = true;
+      let verts = bubb.particleMesh.geometry.vertices;
         verts.forEach(v => {
           if (v.move) {
             v.addScaledVector(v.v.add(new THREE.Vector3(0.0,Math.random()*-0.05,0.0)), 1);
@@ -185,7 +191,7 @@ function animate() {
         });
     }
   }
-
+  
   // played 60 fps (60 rendering per second)
   requestAnimationFrame(animate);
 
@@ -194,7 +200,7 @@ function animate() {
 
   // calculate objects intersecting the picking ray
   // var intersects = raycaster.intersectObjects( scene.children );
-  //controls.update();
+  controls.update();
   camera.updateProjectionMatrix();
 
   // render the code above at every frame
@@ -202,6 +208,7 @@ function animate() {
 }
 
 function propagatePop(bubble, faceIndices, remainingCount) {
+  //console.log(remainingCount + " vertices are visible");
   let prevRemainingCount = remainingCount;
   let nextFaces = [];
 
@@ -238,7 +245,7 @@ function propagatePop(bubble, faceIndices, remainingCount) {
   bubble.innerMesh.geometry.verticesNeedUpdate = true;
 
   if (remainingCount > 0 && remainingCount != prevRemainingCount) {
-    setTimeout(() => propagatePop(bubble, nextFaces, remainingCount), 10);
+    setTimeout(() => propagatePop(bubble, nextFaces, remainingCount), intervals);
   } else {
     scene.remove(bubble)
     bubblesList = bubblesList.filter(b => b.uuid != bubble.uuid);
@@ -382,10 +389,14 @@ document.addEventListener("mousedown", onMouseDown, false);
 function onKeyUp ( event ) {
   switch( event.keyCode ) {
   case 32: // space
+    if(observeMode){
+      bubblesList.push(createBubble(8,50,25,0,-10,0,textureCube));
+    }else{
       for (let i=0; i<10; i++) {
         let rad = Math.floor((Math.random() * 10) + 3);
         setTimeout(() => bubblesList.push(createBubble(rad,50,25,0,-10,0,textureCube)), i*100)
       }
+    }
     break;
 
   case 87: // w
@@ -406,6 +417,15 @@ function onKeyUp ( event ) {
 
   case 88: // x - cancels wind
     globalWind = new THREE.Vector3(0,0,0);
+    break;
+
+  case 84: //t - toggle between observe or moving modes
+    observeMode = !observeMode;
+    if(intervals == 10){
+      intervals = 200;
+    }else{
+      intervals = 10;
+    }
     break;
   }
 }

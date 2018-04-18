@@ -150,7 +150,6 @@ function animate() {
   for (let i = 0; i < bubblesList.length; i++){
     let bubb = bubblesList[i];
     //console.log(bubb);
-    bubb.particleMesh.geometry.verticesNeedUpdate = true;
     bubb.position.x += bubb.velocity.x + bubb.bubbleRandom*globalWind.x;
     bubb.position.y += bubb.velocity.y + bubb.bubbleRandom*globalWind.y + Math.sin(timeStep/100 * bubb.bubbleRandom);
     bubb.position.z += bubb.velocity.z + bubb.bubbleRandom*globalWind.z + Math.sin(timeStep/400 * bubb.bubbleRandom);

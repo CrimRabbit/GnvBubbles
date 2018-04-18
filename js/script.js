@@ -70,8 +70,6 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
   geometry.rotateX(Math.PI /2);
   let innerGeometry = new THREE.SphereGeometry(radius-0.1, widthSegments, heightSegments);
   innerGeometry.rotateX(Math.PI /2);
-  let particleGeometry = new THREE.SphereGeometry(radius-0.2, widthSegments, heightSegments);
-  particleGeometry.rotateX(Math.PI /2);
   let transparentMaterial = new THREE.MeshBasicMaterial({ transparent: true });
   transparentMaterial.opacity = 0;
 
@@ -104,61 +102,7 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
   //Compute normals so that particles know where to move
   bubble.geometry.computeFaceNormals();
 
-  // create a new material for the particle mesh
-  let particleMaterial = new THREE.PointsMaterial({
-    size: 0.2,
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0,
-  });
-  let meshGeometry = new THREE.Geometry();
-
-  //initialising meshGeometry so that the particles know where to move
-  let sphereVerts = particleGeometry.vertices;
-  let sphereFaces = particleGeometry.faces;
-
-  //setting bubble's random & velocity for movement
-  bubble.bubbleRandom = Math.random() * (2 - (-2) + (-2));
-  let maxInitVelo = 0.5;
-  let minInitVelo = -0.5;
-  let xMaxInitVelo = 2.0;
-  let xMinInitVelo = 0.5;
-
-  bubble.velocity = new THREE.Vector3(
-    Math.random() * (xMaxInitVelo - xMinInitVelo) + xMinInitVelo,
-    Math.random() * (maxInitVelo - minInitVelo) + minInitVelo,
-    Math.random() * (maxInitVelo - minInitVelo) + minInitVelo);
-
-  let checkVert = [];
-  sphereFaces.forEach(f => {
-    let vertA = sphereVerts[f.a];
-    let vertB = sphereVerts[f.b];
-    let vertC = sphereVerts[f.c];
-
-    let normal = f.normal.multiplyScalar(Math.random() * 0.3);
-
-    vertA.v = normal;
-    vertB.v = normal;
-    vertC.v = normal;
-
-    vertA.visible = false;
-    vertB.visible = false;
-    vertC.visible = false;
-
-    vertA.move = false;
-    vertB.move = false;
-    vertC.move = false;
-
-    helperAddVertIfNotExist(checkVert, meshGeometry, vertA, f.a);
-    helperAddVertIfNotExist(checkVert, meshGeometry, vertB, f.b);
-    helperAddVertIfNotExist(checkVert, meshGeometry, vertC, f.c);
-  });
-
-  let particleMesh = new THREE.Points(meshGeometry, particleMaterial);
-  particleMesh.sortParticles = true;
-
   bubble.add(innerMesh)
-  bubble.add(particleMesh)
   scene.add(bubble);
 
   bubble.position.set(x,y,z);
@@ -167,7 +111,6 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
     initFaces(bubble);
 
   bubble.innerMesh = innerMesh;
-  bubble.particleMesh = particleMesh;
   return bubble;
 }
 
@@ -217,12 +160,15 @@ function animate() {
     //bubblesList[i].position.z += Math.random()*globalWind[2] +0.5*Math.sin(timeStep/400+i**2);
 
     // Moving the particles
-    let verts = bubblesList[i].particleMesh.geometry.vertices;
-    verts.forEach(v => {
-      if (v.move) {
-        v.addScaledVector(v.v.add(new THREE.Vector3(0.0,Math.random()*-0.05,0.0)), 1);
-      }
-    });
+    if (bubblesList[i].particleMesh !== undefined){
+      bubblesList[i].particleMesh.geometry.verticesNeedUpdate = true;
+      let verts = bubblesList[i].particleMesh.geometry.vertices;
+        verts.forEach(v => {
+          if (v.move) {
+            v.addScaledVector(v.v.add(new THREE.Vector3(0.0,Math.random()*-0.05,0.0)), 1);
+          }
+        });
+    }
   }
 
   // played 60 fps (60 rendering per second)
@@ -279,13 +225,66 @@ function propagatePop(bubble, faceIndices, remainingCount) {
 
   if (remainingCount > 0 && remainingCount != prevRemainingCount) {
     setTimeout(() => propagatePop(bubble, nextFaces, remainingCount), 10);
-    // setTimeout(() => destroyParticle(), 200);
   } else {
     scene.remove(bubble)
     bubblesList = bubblesList.filter(b => b.uuid != bubble.uuid);
     bubble = null
-    // scene.remove(particleMesh);
   }
+}
+
+function addMesh(bubble) {
+  let radius = bubble.geometry.parameters.radius;
+  let widthSegments = bubble.geometry.parameters.widthSegments;
+  let heightSegments = bubble.geometry.parameters.heightSegments;
+
+  let particleGeometry = new THREE.SphereGeometry(radius-0.2, widthSegments, heightSegments);
+
+  particleGeometry.rotateX(Math.PI /2);
+
+  // create a new material for the particle mesh
+  let particleMaterial = new THREE.PointsMaterial({
+    size: 0.2,
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.9,
+  });
+
+  let meshGeometry = new THREE.Geometry();
+
+  //initialising meshGeometry so that the particles know where to move
+  let sphereVerts = particleGeometry.vertices;
+  let sphereFaces = particleGeometry.faces;
+
+  let checkVert = [];
+  sphereFaces.forEach(f => {
+    let vertA = sphereVerts[f.a];
+    let vertB = sphereVerts[f.b];
+    let vertC = sphereVerts[f.c];
+
+    let normal = f.normal.multiplyScalar(Math.random() * 0.3);
+
+    vertA.v = normal;
+    vertB.v = normal;
+    vertC.v = normal;
+
+    vertA.visible = false;
+    vertB.visible = false;
+    vertC.visible = false;
+
+    vertA.move = false;
+    vertB.move = false;
+    vertC.move = false;
+
+    helperAddVertIfNotExist(checkVert, meshGeometry, vertA, f.a);
+    helperAddVertIfNotExist(checkVert, meshGeometry, vertB, f.b);
+    helperAddVertIfNotExist(checkVert, meshGeometry, vertC, f.c);
+  });
+
+  let particleMesh = new THREE.Points(meshGeometry, particleMaterial);
+  particleMesh.sortParticles = true;
+
+  bubble.add(particleMesh)
+  bubble.particleMesh = particleMesh;
 }
 
 function onMouseMove(event) {
@@ -300,7 +299,6 @@ window.addEventListener("mousemove", onMouseMove, false);
 
 function onMouseDown(event) {
   event.preventDefault();
-  //console.log(event)
 
   //gCamera.updateMatrixWorld();
   mouse.x = event.clientX / window.innerWidth * 2 - 1;
@@ -313,7 +311,8 @@ function onMouseDown(event) {
   //console.log(intersects[0]);
   if (intersects.length > 0) {
     let bubble = bubblesList.filter(b => b.uuid === intersects[0].object.uuid)[0]
-    bubble.particleMesh.material.opacity = 0.3;
+    addMesh(bubble);
+    console.log(bubble);
     bubble.lookAt(intersects[0].point)
 
     let nextFaces = [0]; //[intersects[0].faceIndex];

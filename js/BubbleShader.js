@@ -15,9 +15,6 @@ BubbleShader = {
       vec3 cameraRay = worldCoord.xyz - cameraPosition;
       vReflection = reflect(cameraRay, vWorldNormal);
 
-      // vInternalReflection = vec3(vReflection.x, -vReflection.y, vReflection.z);
-      // vInternalReflection = reflect(vReflection, cameraRay);
-
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }`,
 
@@ -28,41 +25,20 @@ BubbleShader = {
     uniform samplerCube envMap;
     uniform vec3 priCol;
     uniform vec3 secCol;
-    uniform vec3 lightDir;
+    uniform vec3 priLightPos;
+    uniform vec3 secLightPos;
 
     void main() {
       float c = dot(normalize(cameraPosition - vWorldPos), vWorldNormal);
       vec4 reflect = textureCube(envMap, vReflection);
 
-      // vec3 diffusePurple = (0.25 - pow(c-0.5, 2.0)) * vec3(1.0, 0.0, 1.0);
-      // vec3 diffuseGreen = (0.25 - pow(c-0.5, 2.0)) * vec3(0.0, 1.0, 0.0);
-      // vec3 diffuseGreen = 0.5*(0.36 - pow(1.5*c-0.5, 2.0)) * vec3(0.0, 1.0, 0.0);
-      // gl_FragColor = vec4(reflect.xyz + diffuse, 0.5);
+      float d = pow(max(0.0, dot(normalize(priLightPos - vWorldPos), vWorldNormal)), 2.0);
+      float d2 = max(0.0, dot(normalize(secLightPos - vWorldPos), vWorldNormal));
 
-      // vec3 diffusePurple;
-      // vec3 diffuseBlue;
-      // vec3 diffuseGreen;
-      // if (c >= 0.0 && c < 0.6)
-      //   diffusePurple = 0.3 * sqrt(0.3 - abs(c-0.3)) * vec3(1.0, 0.0, 1.0);
-      // if (c >= 0.3 && c < 0.6)
-      //   diffuseBlue = (0.2 - abs(c-0.4)) * vec3(0.0, 0.0, 1.0);
-      // if (c >= 0.4 && c < 0.8)
-      //   // diffuseGreen = (0.2 - abs(c-0.55)) * vec3(0.0, 1.0, 0.0);
-      //   diffuseGreen = 0.1*(1.0 + cos(16.0*(c-0.6))) * vec3(0.0, 1.0, 0.0);
+      vec3 col1 = 3.0*priCol*max(0.0, d*(1.0-c));
+      vec3 col2 = 2.0*secCol*max(0.0, d2*(1.0-c));
 
-      vec3 lightPos = vec3(0.0, 200.0, 500.0);
-      vec3 light2Pos = lightDir;
-      float d = pow(max(0.0, dot(normalize(lightPos - vWorldPos), vWorldNormal)), 2.0);
-      float d2 = max(0.0, dot(normalize(light2Pos - vWorldPos), vWorldNormal));
-
-      vec3 col1 = 1.5*priCol*max(0.0, d*(1.0-c));
-      vec3 col2 = secCol*max(0.0, d2*(1.0-c));
-
-      // gl_FragColor = vec4(col1+col2, 1.0);
       gl_FragColor = vec4(col1+col2 + reflect.xyz, 0.3+0.2*length(reflect.xyz));
-      // gl_FragColor = vec4(diffusePurple + diffuseBlue + diffuseGreen + reflect.xyz, 0.6);
-      // gl_FragColor = vec4(diffusePurple + diffuseBlue + diffuseGreen, 1.0);
-      // gl_FragColor = vec4(diffuseGreen, 1.0);
     }
     `
 

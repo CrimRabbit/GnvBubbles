@@ -78,13 +78,14 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
 
   let rand = Math.random();
   let col = rand < 0.4 ? 0xff0099 : (rand < 0.7 ? 0x00ffcc : 0x999900);
-  let col2 = rand < 0.4 ? 0xcccc00 : (rand < 0.7 ? 0x660033 : 0x990066);
+  let col2 = rand < 0.4 ? 0xcccc00 : (rand < 0.7 ? 0x660033 : 0x996600);
 
   let uniforms = {
     envMap: textureCube,
     priCol: { value: new THREE.Color( col ) },
     secCol: { value: new THREE.Color( col2 ) },
-    lightDir: { value: new THREE.Vector3(Math.random()*1000-500, Math.random()*1000-500, Math.random()*1000-500) }
+    priLightDir: { value: new THREE.Vector3(Math.random()*200-100, Math.random()*200-100, Math.random()*200-100) },
+    secLightDir: { value: new THREE.Vector3(Math.random()*1000-500, Math.random()*1000-500, Math.random()*1000-500) },
   };
 
 
@@ -201,7 +202,6 @@ function animate() {
 }
 
 function propagatePop(bubble, faceIndices, remainingCount) {
-  console.log(remainingCount + " vertices are visible");
   let prevRemainingCount = remainingCount;
   let nextFaces = [];
 

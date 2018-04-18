@@ -104,31 +104,12 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
   bubble.geometry.computeFaceNormals();
 
   // create a new material for the particle mesh
-<<<<<<< HEAD
-  let particleMaterial = new THREE.PointsMaterial({ size: 0.1, color: 0xffffff });
-
-  // point cloud geometry
-  let pointGeometry = new THREE.SphereBufferGeometry( radius-1, widthSegments, heightSegments );
-
-  // add an attribute
-  let numVertices = pointGeometry.attributes.position.count;
-  let alphas = new Float32Array( numVertices * 1 ); // 1 values per vertex
-
-  for( var i = 0; i < numVertices; i ++ ) {
-
-      // set alpha randomly
-      alphas[ i ] = 1;
-
-  }
-  // geometry.addAttribute( 'alpha', new THREE.BufferAttribute( alphas, 1 ) );
-=======
   let particleMaterial = new THREE.PointsMaterial({
     size: 0.2,
     color: 0xffffff,
     transparent: true,
     opacity: 0,
   });
->>>>>>>  particles hidden first, appear only when clicked
 
   let meshGeometry = new THREE.Geometry();
 
@@ -279,7 +260,7 @@ function propagatePop(bubble, faceIndices, remainingCount) {
   bubble.innerMesh.geometry.verticesNeedUpdate = true;
 
   if (remainingCount > 0 && remainingCount != prevRemainingCount) {
-    setTimeout(() => propagatePop(bubble, nextFaces, remainingCount), 100);
+    setTimeout(() => propagatePop(bubble, nextFaces, remainingCount), 10);
     // setTimeout(() => destroyParticle(), 200);
   } else {
     scene.remove(bubble)

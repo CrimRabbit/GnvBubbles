@@ -66,7 +66,7 @@ function init() {
   textureCube.format = THREE.RGBFormat;
   scene.background = textureCube;
 
-	sprite = new THREE.TextureLoader().load( "../textures/sprites/disc.png" );
+	sprite = new THREE.TextureLoader().load( "textures/sprites/disc.png" );
 
   for (let i=0; i<15; i++) {
     setTimeout(() => bubblesList.push(createBubble(10,50,25,0,-10,0,textureCube)), i*700)
@@ -191,7 +191,7 @@ function animate() {
         });
     }
   }
-  
+
   // played 60 fps (60 rendering per second)
   requestAnimationFrame(animate);
 
@@ -264,7 +264,7 @@ function addParticleMesh(bubble) {
 
   // create a new material for the particle mesh
   let particleMaterial = new THREE.PointsMaterial({
-    size: 0.2,
+    size: 0.3,
     color: 0xffffff,
     transparent: true,
     opacity: 0.9,

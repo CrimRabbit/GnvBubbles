@@ -214,6 +214,10 @@ function propagatePop(bubble, faceIndices, remainingCount) {
 
   // make faceindices transparent
   for (let faceIdx of faceIndices) {
+    if (faceIndices.length > 2 && Math.random() > 0.8) {
+      nextFaces.push(faceIdx)
+      continue
+    }
     let face = bubble.geometry.faces[faceIdx];
     let innerFace = bubble.innerMesh.geometry.faces[faceIdx];
 

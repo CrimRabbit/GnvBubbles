@@ -4,7 +4,6 @@ BubbleShader = {
     uniform float amplitude;
     attribute float displacement;
     varying vec3 vReflection;
-    varying vec3 vInternalReflection;
     varying vec3 vWorldNormal;
     varying vec3 vWorldPos;
 

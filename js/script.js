@@ -1,9 +1,3 @@
-/***************************************
-  THREE.JS APP
-  https://threejs.org/docs/index.html#manual/introduction/Creating-a-scene
- ***************************************/
-
-/*** 1. INIT: THE NECESSARY COMPONENTS ***/
 let mouse = new THREE.Vector2();
 let controls;
 let camera, scene, renderer, light;
@@ -16,9 +10,9 @@ let textureCube;
 let globalWind = new THREE.Vector3(0.0,0.0,0.0);
 let spawningCount = 0;
 let sprite;
+let timeStep = 0;
 
 init();
-let timeStep = 0;
 animate();
 
 function init() {
@@ -109,7 +103,7 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
   let innerMesh = new THREE.Mesh(innerGeometry, [bubbleInnerMaterial, transparentMaterial]);
 
   //Compute normals so that particles know where to move
-  bubble.geometry.computeFaceNormals();
+  // bubble.geometry.computeFaceNormals();
 
   bubble.bubbleRandom = Math.random() * (2 - (-2) + (-2));
   let maxInitVelo = 0.5;
@@ -169,16 +163,14 @@ function animate() {
 
   for (let i = 0; i < bubblesList.length; i++){
     let bubb = bubblesList[i];
-    //console.log(bubb);
+
+    // Moving the bubbles
     if (!observeMode){
       bubb.position.x += bubb.velocity.x + bubb.bubbleRandom*globalWind.x;
       bubb.position.y += bubb.velocity.y + bubb.bubbleRandom*globalWind.y + Math.sin(timeStep/100 * bubb.bubbleRandom);
       bubb.position.z += bubb.velocity.z + bubb.bubbleRandom*globalWind.z + Math.sin(timeStep/400 * bubb.bubbleRandom);
       bubb.velocity.y -= 0.001;
     }
-    //bubblesList[i].position.x += Math.random()*globalWind[0] + 0.5 + 0.2*Math.random();
-    //bubblesList[i].position.y += Math.random()*globalWind[1] +0.1 + 0.2*(i%4)* Math.sin(timeStep/100+i);
-    //bubblesList[i].position.z += Math.random()*globalWind[2] +0.5*Math.sin(timeStep/400+i**2);
 
     // Moving the particles
     if (bubb.particleMesh !== undefined){
@@ -195,11 +187,6 @@ function animate() {
   // played 60 fps (60 rendering per second)
   requestAnimationFrame(animate);
 
-  // update the picking ray with the camera and mouse position
-  // raycaster.setFromCamera( mouse, camera );
-
-  // calculate objects intersecting the picking ray
-  // var intersects = raycaster.intersectObjects( scene.children );
   controls.update();
   camera.updateProjectionMatrix();
 
@@ -208,7 +195,6 @@ function animate() {
 }
 
 function propagatePop(bubble, faceIndices, remainingCount) {
-  //console.log(remainingCount + " vertices are visible");
   let prevRemainingCount = remainingCount;
   let nextFaces = [];
 
@@ -313,20 +299,9 @@ function addParticleMesh(bubble) {
   bubble.particleMesh = particleMesh;
 }
 
-function onMouseMove(event) {
-  // calculate mouse position in normalized device coordinates
-  // (-1 to +1) for both components
-
-  mouse.x = event.clientX / window.innerWidth * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-}
-
-window.addEventListener("mousemove", onMouseMove, false);
-
 function onMouseDown(event) {
   event.preventDefault();
 
-  //gCamera.updateMatrixWorld();
   mouse.x = event.clientX / window.innerWidth * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -334,61 +309,23 @@ function onMouseDown(event) {
   raycaster.setFromCamera(mouse, camera);
 
   let intersects = raycaster.intersectObjects(bubblesList);
-  //console.log(intersects[0]);
   if (intersects.length > 0) {
     let bubble = bubblesList.filter(b => b.uuid === intersects[0].object.uuid)[0]
-    //add particle mesh only when clicked
-    addParticleMesh(bubble);
+    
+    addParticleMesh(bubble); // adds particle mesh only when clicked
     bubble.lookAt(intersects[0].point)
 
-    let nextFaces = [0]; //[intersects[0].faceIndex];
+    let nextFaces = [0]; // popping will always start from face 0 because of bubble.lookAt
     vertexCount = bubble.geometry.vertices.length;
-    console.log("there are " + vertexCount + " vertices");
     for (let i = 0; i < vertexCount; i++) {
       bubble.geometry.vertices[i].visible = true;
     }
 
     nextFaces = propagatePop(bubble, nextFaces, vertexCount);
-  } else {
-    console.log("miss");
   }
 }
 
 document.addEventListener("mousedown", onMouseDown, false);
-
-// function onKeyDown ( event ) {
-//   switch( event.keyCode ) {
-
-//   case 32: // space
-//       for (let i=0; i<10; i++) {
-//         let rad = Math.floor((Math.random() * 10) + 3);
-//         setTimeout(() => bubblesList.push(createBubble(rad,50,25,0,-10,0,textureCube)), i*100)
-//       }
-//     break;
-
-//   case 87: // w
-//     globalWind = new THREE.Vector3(4.5,0,0);
-//     break;
-
-//   case 65: // a
-//     globalWind = new THREE.Vector3(0,0,-4.5);
-//     break;
-
-//   case 83: // s
-//     globalWind = new THREE.Vector3(-4.5,0,0);
-//     break;
-
-//   case 68: // d
-//     globalWind = new THREE.Vector3(0,0,4.5);
-//     break;
-
-//   case 88: // x - cancels wind
-//     globalWind = new THREE.Vector3(0,0,0);
-//     break;
-//   }
-// }
-
-// document.addEventListener( 'keydown', onKeyDown, false );
 
 function onKeyUp ( event ) {
   switch( event.keyCode ) {

@@ -15,6 +15,19 @@ let timeStep = 0;
 init();
 animate();
 
+document.querySelector('.openPopup').addEventListener('click', function() {
+  var jPopupDemo = new jPopup({
+    content: '<h1>Fun with bubbles!</h1>\
+              <p><strong>Click</strong> on a bubble to pop it, or press <strong>spacebar</strong> to blow more bubbles.</p><br>\
+              <p><strong>More controls:</strong></p>\
+              <p>Click and drag: scroll around</p>\
+              <p>W, A, S, D: change the wind direction</p>\
+              <p>X: disable wind</p>\
+              <p>T: pause time</p><br>\
+              <p>This is a project for SUTD\'s 50.017 Graphics and Visualization course. <a href="about.html">Read more here!</a></p>'
+  });
+});
+
 function init() {
   // Scene
   scene = new THREE.Scene();
@@ -362,9 +375,9 @@ function onKeyUp ( event ) {
 
   case 84: //t - toggle between observe or moving modes
     observeMode = !observeMode;
-    if(intervals == 10){
+    if (observeMode) {
       intervals = 200;
-    }else{
+    } else {
       intervals = 10;
     }
     break;

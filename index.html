@@ -4,24 +4,48 @@
     <title>bubble</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link href='css/jPopup.css' rel='stylesheet' type='text/css'>
     <style>
-      body{
+      body {
         margin: 0;
         padding: 0;
         height: 100vh;
         overflow: hidden;
+        font-family: Helvetica; 
       }
-      canvas{
+      canvas {
         width: 100%;
         height: 100%;
+      }
+
+      .openPopup {
+        position: fixed; right: 20px; bottom: 20px;
+        width: 50px; height: 50px;
+        border-radius: 50%; border: none;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0px 1px 1px 1px rgba(0, 0, 0, 0.4);
+        z-index: 10;
+      }
+
+      .jPopup > .content {
+        max-width: 650px;
+        margin: auto;
+      }
+
+      .jPopup::after {
+        opacity: 0.8;
       }
     </style>
   </head>
 
   <body>
+    <button class="openPopup" type="button">?</button>
+
     <script src="js/three.min.js"></script>
     <script src="js/BubbleShader.js"></script>
     <script src="js/OrbitControls.js"></script>
     <script src="js/script.js"></script>
+    <script src="js/jPopup.min.js"></script>
   </body>
 </html>

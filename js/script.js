@@ -39,7 +39,7 @@ function init() {
     0.1,
     1000
   );
-  camera.position.set(-20, 0, 0);
+  camera.position.set(-1, -100, 0);
 
   // Light
   light = new THREE.PointLight(0xffff00);
@@ -76,11 +76,11 @@ function init() {
 	sprite = new THREE.TextureLoader().load( "textures/sprites/disc.png" );
 
   for (let i=0; i<15; i++) {
-    setTimeout(() => bubblesList.push(createBubble(10,50,25,0,-10,0,textureCube)), i*700)
+    setTimeout(() => bubblesList.push(createBubble(10,50,25)), i*700)
   }
 }
 
-function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube){
+function createBubble(radius, widthSegments, heightSegments){
   let geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
   geometry.rotateX(Math.PI /2);
   let innerGeometry = new THREE.SphereGeometry(radius-0.1, widthSegments, heightSegments);
@@ -115,30 +115,33 @@ function createBubble(radius, widthSegments, heightSegments, x,y,z, textureCube)
   bubble.renderOrder = 1;   // make innerMesh render first
   let innerMesh = new THREE.Mesh(innerGeometry, [bubbleInnerMaterial, transparentMaterial]);
 
-  //Compute normals so that particles know where to move
-  // bubble.geometry.computeFaceNormals();
+  camera.updateProjectionMatrix()
+  let camVec = new THREE.Vector3(0,-10,-10)
+  let pos = camera.localToWorld(camVec)
+  bubble.position.copy(pos)
+  let normal = new THREE.Vector3()
+  camera.getWorldDirection(normal)
 
-  bubble.bubbleRandom = Math.random() * (2 - (-2) + (-2));
-  let maxInitVelo = 0.5;
-  let minInitVelo = -0.5;
-  let xMaxInitVelo = 2.0;
-  let xMinInitVelo = 0.5;
+  bubble.bubbleRandom = 1 + Math.random()
 
-  bubble.velocity = new THREE.Vector3(
-    Math.random() * (xMaxInitVelo - xMinInitVelo) + xMinInitVelo,
-    Math.random() * (maxInitVelo - minInitVelo) + minInitVelo,
-    Math.random() * (maxInitVelo - minInitVelo) + minInitVelo);
+  normal = normal.multiplyScalar(2+Math.random())
+  normal = normal.add(new THREE.Vector3(Math.random()*0.4-0.2,Math.random()*0.4-0.2,Math.random()*0.4-0.2))
+  bubble.velocity = normal
 
   bubble.add(innerMesh)
   scene.add(bubble);
-
-  bubble.position.set(x,y,z);
 
   if (!verticeToFaces)
     initFaces(bubble);
 
   bubble.innerMesh = innerMesh;
   return bubble;
+}
+
+function removeBubble(bubble) {
+  scene.remove(bubble)
+  bubblesList = bubblesList.filter(b => b.uuid != bubble.uuid);
+  bubble = null
 }
 
 function initFaces(bubble) {
@@ -179,10 +182,11 @@ function animate() {
 
     // Moving the bubbles
     if (!observeMode){
-      bubb.position.x += bubb.velocity.x + bubb.bubbleRandom*globalWind.x;
-      bubb.position.y += bubb.velocity.y + bubb.bubbleRandom*globalWind.y + Math.sin(timeStep/100 * bubb.bubbleRandom);
-      bubb.position.z += bubb.velocity.z + bubb.bubbleRandom*globalWind.z + Math.sin(timeStep/400 * bubb.bubbleRandom);
+      bubb.position.x += bubb.velocity.x + bubb.bubbleRandom*globalWind.x + 0.7*Math.cos(0.0007*timeStep * bubb.bubbleRandom - 1.1);
+      bubb.position.y += bubb.velocity.y + bubb.bubbleRandom*globalWind.y + Math.sin(0.0021*timeStep * bubb.bubbleRandom - bubb.velocity.x);
+      bubb.position.z += bubb.velocity.z + bubb.bubbleRandom*globalWind.z + 0.6*Math.sin(-0.0005*timeStep * bubb.bubbleRandom);
       bubb.velocity.y -= 0.001;
+      if (bubb.position.y < -200) removeBubble(bubb);
     }
 
     // Moving the particles
@@ -250,9 +254,7 @@ function propagatePop(bubble, faceIndices, remainingCount) {
   if (remainingCount > 0 && remainingCount != prevRemainingCount) {
     setTimeout(() => propagatePop(bubble, nextFaces, remainingCount), intervals);
   } else {
-    scene.remove(bubble)
-    bubblesList = bubblesList.filter(b => b.uuid != bubble.uuid);
-    bubble = null
+    removeBubble(bubble)
   }
 }
 
@@ -343,12 +345,13 @@ document.addEventListener("mousedown", onMouseDown, false);
 function onKeyUp ( event ) {
   switch( event.keyCode ) {
   case 32: // space
-    if(observeMode){
-      bubblesList.push(createBubble(8,50,25,0,-10,0,textureCube));
-    }else{
-      for (let i=0; i<10; i++) {
+
+    if (observeMode) {
+      bubblesList.push(createBubble(8,50,25));
+    } else {
+      for (let i=0; i<5+Math.round(Math.random()*5); i++) {
         let rad = Math.floor((Math.random() * 10) + 3);
-        setTimeout(() => bubblesList.push(createBubble(rad,50,25,0,-10,0,textureCube)), i*100)
+        setTimeout(() => bubblesList.push(createBubble(rad,50,25)), i*100)
       }
     }
     break;

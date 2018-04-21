@@ -23,7 +23,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 	this.enabled = true;
 
 	// "target" sets the location of focus, where the object orbits around
-	this.target = new THREE.Vector3();
+	this.target = new THREE.Vector3(0, -100, 0);
 
 	// How far you can dolly in and out ( PerspectiveCamera only )
 	this.minDistance = 0;
@@ -50,7 +50,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	// This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
 	// Set to false to disable zooming
-	this.enableZoom = true;
+	this.enableZoom = false;
 	this.zoomSpeed = 1.0;
 
 	// Set to false to disable rotating
@@ -58,7 +58,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 	this.rotateSpeed = 1.0;
 
 	// Set to false to disable panning
-	this.enablePan = true;
+	this.enablePan = false;
 	this.panSpeed = 1.0;
 	this.panningMode = THREE.ScreenSpacePanning; // alternate THREE.HorizontalPanning
 	this.keyPanSpeed = 7.0;	// pixels moved per arrow key push

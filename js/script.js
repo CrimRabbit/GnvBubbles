@@ -37,7 +37,7 @@ function init() {
     75,
     window.innerWidth / window.innerHeight,
     0.1,
-    1000
+    3000
   );
   camera.position.set(-1, -100, 0);
 
@@ -90,6 +90,7 @@ function createBubble(radius, widthSegments, heightSegments){
 
   let rand = Math.random();
   let col = rand < 0.4 ? 0xff0099 : (rand < 0.7 ? 0x00ffcc : 0x999900);
+  rand = Math.random();
   let col2 = rand < 0.4 ? 0xcccc00 : (rand < 0.7 ? 0x660033 : 0x996600);
 
   let uniforms = {
@@ -116,7 +117,7 @@ function createBubble(radius, widthSegments, heightSegments){
   let innerMesh = new THREE.Mesh(innerGeometry, [bubbleInnerMaterial, transparentMaterial]);
 
   camera.updateProjectionMatrix()
-  let camVec = new THREE.Vector3(0,-10,-10)
+  let camVec = new THREE.Vector3(0,-4,-10)
   let pos = camera.localToWorld(camVec)
   bubble.position.copy(pos)
   let normal = new THREE.Vector3()
@@ -124,7 +125,7 @@ function createBubble(radius, widthSegments, heightSegments){
 
   bubble.bubbleRandom = 1 + Math.random()
 
-  normal = normal.multiplyScalar(2+Math.random())
+  normal = normal.multiplyScalar(1+0.5*Math.random())
   normal = normal.add(new THREE.Vector3(Math.random()*0.4-0.2,Math.random()*0.4-0.2,Math.random()*0.4-0.2))
   bubble.velocity = normal
 
@@ -357,19 +358,19 @@ function onKeyUp ( event ) {
     break;
 
   case 87: // w
-    globalWind = new THREE.Vector3(4.5,0,0);
+    globalWind = new THREE.Vector3(2,0,0);
     break;
 
   case 65: // a
-    globalWind = new THREE.Vector3(0,0,-4.5);
+    globalWind = new THREE.Vector3(0,0,-2);
     break;
 
   case 83: // s
-    globalWind = new THREE.Vector3(-4.5,0,0);
+    globalWind = new THREE.Vector3(-2,0,0);
     break;
 
   case 68: // d
-    globalWind = new THREE.Vector3(0,0,4.5);
+    globalWind = new THREE.Vector3(0,0,2);
     break;
 
   case 88: // x - cancels wind
